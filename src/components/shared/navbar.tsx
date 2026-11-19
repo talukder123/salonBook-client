@@ -17,7 +17,6 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-
         <Link href="/" className="shrink-0">
           <Image
             src="/images/salonBook.png"
@@ -34,7 +33,7 @@ const Navbar = () => {
             <Link
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-gray-600 transition-colors hover:text-[#000099]"
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-[#0B1F54]"
             >
               {link.name}
             </Link>
@@ -44,14 +43,14 @@ const Navbar = () => {
         <div className="hidden items-center gap-3 md:flex">
           <Link
             href="/sign-in"
-            className="border border-[#000099] px-5 py-2.5 text-sm font-semibold text-[#000099] transition-colors hover:bg-[#000099] hover:text-white"
+            className="border border-[#0B1F54] px-5 py-2.5 text-sm font-semibold text-[#0B1F54] transition-colors hover:bg-[#0B1F54] hover:text-white"
           >
             Sign In
           </Link>
 
           <Link
             href="/sign-up"
-            className="bg-[#000099] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#000066]"
+            className="bg-[#0B1F54] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#08183F]"
           >
             Sign Up
           </Link>
@@ -62,13 +61,9 @@ const Navbar = () => {
           onClick={() => setIsOpen(!isOpen)}
           aria-label={isOpen ? "Close menu" : "Open menu"}
           aria-expanded={isOpen}
-          className="border border-gray-300 p-2 text-gray-700 md:hidden"
+          className="border border-gray-300 p-2 text-gray-700 transition-colors hover:text-[#0B1F54] md:hidden"
         >
-          {isOpen ? (
-            <X size={23} />
-          ) : (
-            <Menu size={23} />
-          )}
+          {isOpen ? <X size={23} /> : <Menu size={23} />}
         </button>
       </nav>
 
@@ -81,7 +76,7 @@ const Navbar = () => {
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="text-sm font-medium text-gray-700 hover:text-[#000099]"
+                className="text-sm font-medium text-gray-700 transition-colors hover:text-[#0B1F54]"
               >
                 {link.name}
               </Link>
@@ -91,7 +86,7 @@ const Navbar = () => {
               <Link
                 href="/sign-in"
                 onClick={() => setIsOpen(false)}
-                className="border border-[#000099] px-5 py-2.5 text-center text-sm font-semibold text-[#000099]"
+                className="border border-[#0B1F54] px-5 py-2.5 text-center text-sm font-semibold text-[#0B1F54] transition-colors hover:bg-[#0B1F54] hover:text-white"
               >
                 Sign In
               </Link>
@@ -99,7 +94,7 @@ const Navbar = () => {
               <Link
                 href="/sign-up"
                 onClick={() => setIsOpen(false)}
-                className="bg-[#000099] px-5 py-2.5 text-center text-sm font-semibold text-white"
+                className="bg-[#0B1F54] px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#08183F]"
               >
                 Sign Up
               </Link>
