@@ -52,16 +52,7 @@ const Footer = () => {
                   Browse Services
                 </Link>
               </li>
-              <li>
-                <Link href="/signin" className="hover:text-blue-300">
-                  Sign In
-                </Link>
-              </li>
-              <li>
-                <Link href="/signup" className="hover:text-blue-300">
-                  Sign Up
-                </Link>
-              </li>
+             
             </ul>
           </div>
 
@@ -74,12 +65,12 @@ const Footer = () => {
             <ul className="space-y-5 text-sm text-gray-300">
               <li className="flex items-start gap-3">
                 <Mail size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                <span>your-email@example.com</span>
+                <span>salonbook@gmail.com</span>
               </li>
 
               <li className="flex items-start gap-3">
                 <Phone size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                <span>+880 1XXXXXXXXX</span>
+                <span>+880 1700001110</span>
               </li>
 
               <li className="flex items-start gap-3">
