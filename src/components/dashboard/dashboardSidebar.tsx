@@ -33,20 +33,60 @@ import {
 
 // Admin Navigation
 const adminNavItems = [
-    { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { title: "Manage Services", href: "/dashboard/services", icon: Scissors },
-    { title: "Add/Update Service", href: "/dashboard/services/add", icon: PlusCircle },
-    { title: "Manage Appointments", href: "/dashboard/appointments", icon: CalendarDays },
-    { title: "Manage Users", href: "/dashboard/users", icon: Users },
-    { title: "Transactions", href: "/dashboard/transactions", icon: CreditCard },
-    { title: "My Profile", href: "/dashboard/profile", icon: UserRound },
+  {
+    title: "Overview",
+    href: "/dashboard/admin",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Manage Services",
+    href: "/dashboard/admin/services",
+    icon: Scissors,
+  },
+  {
+    title: "Add/Update Service",
+    href: "/dashboard/admin/services/add",
+    icon: PlusCircle,
+  },
+  {
+    title: "Manage Appointments",
+    href: "/dashboard/admin/appointments",
+    icon: CalendarDays,
+  },
+  {
+    title: "Manage Users",
+    href: "/dashboard/admin/manage-users",
+    icon: Users,
+  },
+  {
+    title: "Transactions",
+    href: "/dashboard/admin/transactions",
+    icon: CreditCard,
+  },
+  {
+    title: "My Profile",
+    href: "/dashboard/admin/myprofile",
+    icon: UserRound,
+  },
 ];
 
 // Customer Navigation
 const customerNavItems = [
-    { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { title: "My Appointments", href: "/dashboard/appointments", icon: CalendarDays },
-    { title: "My Profile", href: "/dashboard/profile", icon: UserRound },
+    {
+        title: "Overview",
+        href: "/dashboard/user",
+        icon: LayoutDashboard,
+    },
+    {
+        title: "My Appointments",
+        href: "/dashboard/user/my-appointment",
+        icon: CalendarDays,
+    },
+    {
+        title: "My Profile",
+        href: "/dashboard/user/my-profile",
+        icon: UserRound,
+    },
 ];
 
 const DashboardSidebar = ({ user }: { user: Tuser }) => {
@@ -55,9 +95,7 @@ const DashboardSidebar = ({ user }: { user: Tuser }) => {
 
     const isAdmin = user.role === "admin";
 
-    const navItems = isAdmin
-        ? adminNavItems
-        : customerNavItems;
+    const navItems = isAdmin ? adminNavItems : customerNavItems;
 
     // Logout
     const handleLogout = async () => {
@@ -77,28 +115,11 @@ const DashboardSidebar = ({ user }: { user: Tuser }) => {
             variant="sidebar"
             className="border-r border-[#E2E8F0]"
         >
-
             {/* Logo */}
-            <SidebarHeader
-                className="
-                    h-[84px] shrink-0 justify-center
-                    overflow-hidden border-b border-[#E2E8F0]
-                    bg-[#F6F8FC] px-4 py-3
-
-                    group-data-[collapsible=icon]:px-0
-                "
-            >
+            <SidebarHeader className="h-[84px] shrink-0 justify-center overflow-hidden border-b border-[#E2E8F0] bg-[#F6F8FC] px-4 py-3 group-data-[collapsible=icon]:px-0">
                 <Link
                     href="/"
-                    className="
-                        flex h-12 w-full min-w-0 items-center
-                        justify-start gap-3 overflow-hidden
-                        transition-colors hover:bg-white/80
-
-                        group-data-[collapsible=icon]:mx-auto
-                        group-data-[collapsible=icon]:w-11
-                        group-data-[collapsible=icon]:justify-center
-                    "
+                    className="flex h-12 w-full min-w-0 items-center justify-start gap-3 overflow-hidden transition-colors hover:bg-white/80 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:justify-center"
                 >
                     <span className="flex size-11 shrink-0 items-center justify-center bg-white shadow-sm ring-1 ring-[#E2E8F0]">
                         <Image
@@ -124,103 +145,38 @@ const DashboardSidebar = ({ user }: { user: Tuser }) => {
             </SidebarHeader>
 
             {/* Navigation */}
-            <SidebarContent
-                className="
-                    overflow-x-hidden bg-[#F6F8FC]
-                    px-3 py-6
-
-                    group-data-[collapsible=icon]:px-0
-                "
-            >
-                <SidebarGroup
-                    className="
-                        min-w-0 p-0
-
-                        group-data-[collapsible=icon]:w-full
-                        group-data-[collapsible=icon]:px-0
-                    "
-                >
-                    <SidebarGroupLabel
-                        className="
-                            mb-3 h-7 px-3
-                            text-[10px] font-bold uppercase
-                            tracking-[0.18em] text-[#A19A8D]
-
-                            group-data-[collapsible=icon]:hidden
-                        "
-                    >
+            <SidebarContent className="overflow-x-hidden bg-[#F6F8FC] px-3 py-6 group-data-[collapsible=icon]:px-0">
+                <SidebarGroup className="min-w-0 p-0 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:px-0">
+                    <SidebarGroupLabel className="mb-3 h-7 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#A19A8D] group-data-[collapsible=icon]:hidden">
                         {isAdmin ? "Admin Workspace" : "Customer Workspace"}
                     </SidebarGroupLabel>
 
-                    <SidebarMenu
-                        className="
-                            w-full gap-1.5
-
-                            group-data-[collapsible=icon]:w-full
-                            group-data-[collapsible=icon]:items-center
-                            group-data-[collapsible=icon]:gap-2
-                        "
-                    >
+                    <SidebarMenu className="w-full gap-1.5 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2">
                         {navItems.map((item) => {
                             const Icon = item.icon;
 
                             const active =
                                 pathname === item.href ||
-                                (
-                                    item.href !== "/dashboard" &&
-                                    pathname.startsWith(`${item.href}/`)
-                                );
+                                (item.title !== "Overview" &&
+                                    pathname.startsWith(`${item.href}/`));
 
                             return (
                                 <SidebarMenuItem
                                     key={item.href}
-                                    className="
-                                        w-full min-w-0
-
-                                        group-data-[collapsible=icon]:flex
-                                        group-data-[collapsible=icon]:w-full
-                                        group-data-[collapsible=icon]:justify-center
-                                    "
+                                    className="w-full min-w-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center"
                                 >
                                     <SidebarMenuButton
                                         render={<Link href={item.href} />}
                                         isActive={active}
                                         tooltip={item.title}
-                                        className={`
-                                            h-12 w-full min-w-0
-                                            rounded-xl px-3
-                                            text-[13px] font-medium
-                                            transition-all duration-200
-
-                                            group-data-[collapsible=icon]:!flex
-                                            group-data-[collapsible=icon]:!h-11
-                                            group-data-[collapsible=icon]:!w-11
-                                            group-data-[collapsible=icon]:!min-w-11
-                                            group-data-[collapsible=icon]:!max-w-11
-                                            group-data-[collapsible=icon]:!shrink-0
-                                            group-data-[collapsible=icon]:!grow-0
-                                            group-data-[collapsible=icon]:!mx-auto
-                                            group-data-[collapsible=icon]:!p-0
-                                            group-data-[collapsible=icon]:!gap-0
-                                            group-data-[collapsible=icon]:!justify-center
-                                            group-data-[collapsible=icon]:[&>span]:!hidden
-
-                                            ${
-                                                active
-                                                    ? "bg-[#E8EEF9] text-[#14254B] data-active:bg-[#E8EEF9] data-active:text-[#14254B] shadow-sm hover:bg-[#DCE7F8] hover:text-[#14254B]"
-                                                    : "text-[#626A78] hover:bg-white hover:text-[#14254B] hover:shadow-sm"
-                                            }
-                                        `}
+                                        className={`h-12 w-full min-w-0 rounded-xl px-3 text-[13px] font-medium transition-all duration-200 group-data-[collapsible=icon]:!flex group-data-[collapsible=icon]:!h-11 group-data-[collapsible=icon]:!w-11 group-data-[collapsible=icon]:!min-w-11 group-data-[collapsible=icon]:!max-w-11 group-data-[collapsible=icon]:!shrink-0 group-data-[collapsible=icon]:!grow-0 group-data-[collapsible=icon]:!mx-auto group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:[&>span]:!hidden ${active
+                                                ? "bg-[#E8EEF9] text-[#14254B] data-active:bg-[#E8EEF9] data-active:text-[#14254B] shadow-sm hover:bg-[#DCE7F8] hover:text-[#14254B]"
+                                                : "text-[#626A78] hover:bg-white hover:text-[#14254B] hover:shadow-sm"
+                                            }`}
                                     >
                                         <Icon
-                                            className={`
-                                                !size-5 shrink-0
-                                                ${
-                                                    active
-                                                        ? "text-[#0B1F54]"
-                                                        : "text-[#8B93A1]"
-                                                }
-                                            `}
+                                            className={`!size-5 shrink-0 ${active ? "text-[#0B1F54]" : "text-[#8B93A1]"
+                                                }`}
                                         />
 
                                         <span className="min-w-0 truncate">
@@ -235,34 +191,9 @@ const DashboardSidebar = ({ user }: { user: Tuser }) => {
             </SidebarContent>
 
             {/* Footer */}
-            <SidebarFooter
-                className="
-                    shrink-0 gap-3 border-t
-                    border-[#E2E8F0] bg-[#F6F8FC] p-3
-
-                    group-data-[collapsible=icon]:px-0
-                    group-data-[collapsible=icon]:items-center
-                "
-            >
+            <SidebarFooter className="shrink-0 gap-3 border-t border-[#E2E8F0] bg-[#F6F8FC] p-3 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
                 {/* User Information */}
-                <div
-                    className="
-                        flex w-full min-w-0 items-center gap-3
-                        rounded-xl border border-[#E2E8F0]
-                        bg-white p-2.5
-                        shadow-[0_2px_8px_-6px_rgba(20,37,75,0.3)]
-
-                        group-data-[collapsible=icon]:!w-11
-                        group-data-[collapsible=icon]:!h-11
-                        group-data-[collapsible=icon]:!mx-auto
-                        group-data-[collapsible=icon]:!justify-center
-                        group-data-[collapsible=icon]:!gap-0
-                        group-data-[collapsible=icon]:!border-transparent
-                        group-data-[collapsible=icon]:!bg-transparent
-                        group-data-[collapsible=icon]:!p-0
-                        group-data-[collapsible=icon]:!shadow-none
-                    "
-                >
+                <div className="flex w-full min-w-0 items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white p-2.5 shadow-[0_2px_8px_-6px_rgba(20,37,75,0.3)] group-data-[collapsible=icon]:!w-11 group-data-[collapsible=icon]:!h-11 group-data-[collapsible=icon]:!mx-auto group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!border-transparent group-data-[collapsible=icon]:!bg-transparent group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!shadow-none">
                     {/* Profile Image */}
                     <div className="relative size-10 shrink-0 overflow-hidden rounded-full">
                         <Image
@@ -287,45 +218,12 @@ const DashboardSidebar = ({ user }: { user: Tuser }) => {
                 </div>
 
                 {/* Logout */}
-                <SidebarMenu
-                    className="
-                        w-full gap-0
-
-                        group-data-[collapsible=icon]:items-center
-                    "
-                >
-                    <SidebarMenuItem
-                        className="
-                            w-full min-w-0
-
-                            group-data-[collapsible=icon]:flex
-                            group-data-[collapsible=icon]:justify-center
-                        "
-                    >
+                <SidebarMenu className="w-full gap-0 group-data-[collapsible=icon]:items-center">
+                    <SidebarMenuItem className="w-full min-w-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
                         <SidebarMenuButton
                             onClick={handleLogout}
                             tooltip="Logout"
-                            className="
-                                h-11 w-full min-w-0
-                                rounded-xl px-3
-                                text-[13px] font-semibold
-                                text-[#8B6570] transition-all
-                                hover:bg-[#F9EFF0]
-                                hover:text-[#A3404B]
-
-                                group-data-[collapsible=icon]:!flex
-                                group-data-[collapsible=icon]:!h-11
-                                group-data-[collapsible=icon]:!w-11
-                                group-data-[collapsible=icon]:!min-w-11
-                                group-data-[collapsible=icon]:!max-w-11
-                                group-data-[collapsible=icon]:!shrink-0
-                                group-data-[collapsible=icon]:!grow-0
-                                group-data-[collapsible=icon]:!mx-auto
-                                group-data-[collapsible=icon]:!p-0
-                                group-data-[collapsible=icon]:!gap-0
-                                group-data-[collapsible=icon]:!justify-center
-                                group-data-[collapsible=icon]:[&>span]:!hidden
-                            "
+                            className="h-11 w-full min-w-0 rounded-xl px-3 text-[13px] font-semibold text-[#8B6570] transition-all hover:bg-[#F9EFF0] hover:text-[#A3404B] group-data-[collapsible=icon]:!flex group-data-[collapsible=icon]:!h-11 group-data-[collapsible=icon]:!w-11 group-data-[collapsible=icon]:!min-w-11 group-data-[collapsible=icon]:!max-w-11 group-data-[collapsible=icon]:!shrink-0 group-data-[collapsible=icon]:!grow-0 group-data-[collapsible=icon]:!mx-auto group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:[&>span]:!hidden"
                         >
                             <LogOut className="!size-5 shrink-0" />
                             <span>Logout</span>

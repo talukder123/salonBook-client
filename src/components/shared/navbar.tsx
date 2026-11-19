@@ -37,6 +37,7 @@ type ProfileDropdownProps = {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role?: string | null;
   };
 };
 
@@ -44,6 +45,11 @@ type ProfileDropdownProps = {
 const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const dashboardHref =
+  user.role === "admin"
+    ? "/dashboard/admin"
+    : "/dashboard/user";
 
   const handleLogout = async () => {
     try {
@@ -85,14 +91,13 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
         Open Profile
       </PopoverTrigger>
 
-      {/* Glossy Dropdown */}
+      {/* Profile Dropdown */}
       <PopoverContent
         align="end"
         sideOffset={12}
         className="w-[290px] overflow-hidden rounded-[24px] border border-white/80 bg-white/75 p-2.5 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-900/75 dark:shadow-black/30"
       >
         <div className="space-y-2">
-
           {/* User Information */}
           <PopoverHeader className="flex flex-row items-center gap-3 rounded-2xl bg-white/55 px-3 py-3 dark:bg-white/[0.06]">
             <Avatar className="h-11 w-11 shrink-0 rounded-full border-0 ring-0">
@@ -120,9 +125,8 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
 
           {/* Navigation Items */}
           <div className="space-y-1 rounded-2xl bg-white/45 p-1.5 dark:bg-white/[0.04]">
-
             <Link
-              href="/dashboard"
+              href={dashboardHref}
               onClick={() => setProfileOpen(false)}
               className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-white/90 hover:text-[#0B1F54] hover:shadow-sm dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
             >
@@ -138,7 +142,6 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
               <UserRound size={18} strokeWidth={1.8} />
               <span>Manage Profile</span>
             </Link>
-
           </div>
 
           {/* Logout */}
@@ -154,7 +157,6 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
               <span>Logout</span>
             </button>
           </div>
-
         </div>
       </PopoverContent>
     </Popover>
@@ -176,10 +178,7 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full">
       <div className="w-full border-b border-gray-100 bg-white/90 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90">
-
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-
-          {/* Logo */}
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <Image
@@ -202,7 +201,7 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-base  font-medium text-gray-600 transition-colors hover:text-[#0B1F54] dark:text-gray-300 dark:hover:text-white"
+                className="text-base font-medium text-gray-600 transition-colors hover:text-[#0B1F54] dark:text-gray-300 dark:hover:text-white"
               >
                 {link.name}
               </Link>
@@ -211,7 +210,6 @@ const Navbar = () => {
 
           {/* User Actions */}
           <div className="flex shrink-0 items-center gap-3">
-
             {/* Desktop Authentication */}
             <div className="hidden items-center gap-3 md:flex">
               {isPending ? (
@@ -258,16 +256,13 @@ const Navbar = () => {
             >
               {isOpen ? <X size={23} /> : <Menu size={23} />}
             </button>
-
           </div>
         </nav>
 
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="border-t border-gray-200 bg-white/90 px-6 py-5 backdrop-blur-2xl dark:border-zinc-800 dark:bg-zinc-950/90 md:hidden">
-
             <div className="flex flex-col gap-5">
-
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
@@ -282,7 +277,6 @@ const Navbar = () => {
               {/* Mobile Authentication */}
               {!isPending && !user && (
                 <div className="flex flex-col gap-3 border-t border-gray-200 pt-5 dark:border-zinc-800">
-
                   <Link
                     href="/sign-in"
                     onClick={() => setIsOpen(false)}
@@ -298,14 +292,11 @@ const Navbar = () => {
                   >
                     Sign Up
                   </Link>
-
                 </div>
               )}
-
             </div>
           </div>
         )}
-
       </div>
     </header>
   );

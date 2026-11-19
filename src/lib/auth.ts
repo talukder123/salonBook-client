@@ -19,6 +19,12 @@ export const auth = betterAuth({
                 defaultValue: "user",
                 input: false,
             },
+            isBlocked: {
+                type: "boolean",
+                required: false,
+                defaultValue: false,
+                input: false,
+            },
         },
     },
 
@@ -26,9 +32,9 @@ export const auth = betterAuth({
         enabled: true,
     },
     socialProviders: {
-         google: { 
-            clientId: process.env.GOOGLE_CLIENT_ID as string, 
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string, 
-        }, 
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        },
     },
 });
