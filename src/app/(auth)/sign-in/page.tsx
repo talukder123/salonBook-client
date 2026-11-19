@@ -1,9 +1,9 @@
-
 "use client";
 
 import { useState, FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Eye,
   EyeOff,
@@ -13,24 +13,32 @@ import {
 } from "lucide-react";
 
 import signinImage from "../../../../public/images/AUTH/sign-in-page.jpg";
+import { authClient } from "@/lib/auth-client";
 
 const SignInPage = () => {
+  const router = useRouter();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Email and Password Login
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
-    const formData = new FormData(e.currentTarget);
+    const { email, password } = formData;
 
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       setError("Please fill in all fields.");
       return;
     }
@@ -40,16 +48,50 @@ const SignInPage = () => {
       return;
     }
 
-    console.log({
-      email,
-      password,
-    });
+    try {
+      setIsLoading(true);
 
-    setSuccess("Sign in form submitted successfully!");
+      const { data, error } = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setError(error.message || "Invalid email or password.");
+        return;
+      }
+
+      console.log("Sign In Successful:", data);
+
+      setSuccess("You have signed in successfully!");
+
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      console.error("Sign In Error:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google Login clicked");
+  // Google Login
+  const handleGoogleLogin = async () => {
+    setError("");
+    setSuccess("");
+
+    try {
+      setIsGoogleLoading(true);
+
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+    } catch (err) {
+      console.error("Google Login Error:", err);
+      setError("Google sign in failed. Please try again.");
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -95,7 +137,15 @@ const SignInPage = () => {
                   name="email"
                   type="email"
                   placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      email: e.target.value,
+                    })
+                  }
                   required
+                  autoComplete="email"
                   className="w-full h-12 border border-gray-300 pl-11 pr-4 text-sm outline-none focus:border-[#0B1F54] transition"
                 />
               </div>
@@ -130,7 +180,15 @@ const SignInPage = () => {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      password: e.target.value,
+                    })
+                  }
                   required
+                  autoComplete="current-password"
                   className="w-full h-12 border border-gray-300 pl-11 pr-12 text-sm outline-none focus:border-[#0B1F54] transition"
                 />
 
@@ -166,10 +224,11 @@ const SignInPage = () => {
             {/* Sign In Button */}
             <button
               type="submit"
-              className="w-full h-12 bg-[#0B1F54] hover:bg-[#08183F] text-white font-semibold text-sm flex items-center justify-center gap-2 transition"
+              disabled={isLoading || isGoogleLoading}
+              className="w-full h-12 bg-[#0B1F54] hover:bg-[#08183F] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm flex items-center justify-center gap-2 transition"
             >
-              Sign In
-              <ArrowRight size={18} />
+              {isLoading ? "Signing In..." : "Sign In"}
+              {!isLoading && <ArrowRight size={18} />}
             </button>
           </form>
 
@@ -186,7 +245,8 @@ const SignInPage = () => {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full h-12 border border-gray-300 hover:border-[#0B1F54] flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 transition"
+            disabled={isGoogleLoading || isLoading}
+            className="w-full h-12 border border-gray-300 hover:border-[#0B1F54] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 transition"
           >
             <svg viewBox="0 0 48 48" className="w-5 h-5">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" />
@@ -195,7 +255,7 @@ const SignInPage = () => {
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.89l-7.63-5.91c-2.12 1.42-4.83 2.26-8.27 2.26-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z" />
             </svg>
 
-            Continue with Google
+            {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
           </button>
 
           {/* Sign Up Link */}
