@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import ImageUpload from "./imageUpload";
+import uploadImage from "@/lib/imgbb";
 
 const categories = [
   "Hair",
@@ -14,25 +15,58 @@ const categories = [
 
 const AddServiceForm = () => {
   const [image, setImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
 
-  console.log("Form Submitted!");
 
-  const formData = new FormData(e.currentTarget);
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const serviceData = {
-    serviceName: formData.get("serviceName"),
-    category: formData.get("category"),
-    description: formData.get("description"),
-    price: Number(formData.get("price")),
-    duration: Number(formData.get("duration")),
-    image,
+    if (!image) {
+      alert("Please select a service image.");
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
+
+    const serviceInfo = {
+      serviceName: formData.get("serviceName"),
+      category: formData.get("category"),
+      description: formData.get("description"),
+      price: Number(formData.get("price")),
+      duration: Number(formData.get("duration")),
+    };
+
+    try {
+      setLoading(true);
+
+      // Upload image to ImgBB
+      const imageUrl = await uploadImage(image);
+
+      // Prepare service data
+      const serviceData = {
+        ...serviceInfo,
+        image: imageUrl,
+        status: "active",
+      };
+
+      console.log("Service Data:", serviceData);
+
+      alert("Image uploaded successfully!");
+
+    } catch (error) {
+      console.error("Service submission error:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Image upload failed."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  console.log("Service Data:", serviceData);
-};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -137,9 +171,10 @@ const AddServiceForm = () => {
       <div className="flex justify-end border-t border-gray-200 pt-5">
         <button
           type="submit"
-          className="h-12 bg-[#0B1F54] px-8 font-medium text-white transition hover:bg-[#142f70]"
+          disabled={loading}
+          className="h-12 bg-[#0B1F54] px-8 font-medium text-white transition hover:bg-[#142f70] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Add Service
+          {loading ? "Uploading..." : "Add Service"}
         </button>
       </div>
 
