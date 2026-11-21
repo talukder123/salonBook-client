@@ -44,11 +44,6 @@ const adminNavItems = [
     icon: Scissors,
   },
   {
-    title: "Add/Update Service",
-    href: "/dashboard/admin/services/add",
-    icon: PlusCircle,
-  },
-  {
     title: "Manage Appointments",
     href: "/dashboard/admin/appointments",
     icon: CalendarDays,
