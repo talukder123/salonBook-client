@@ -1,15 +1,16 @@
 
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import React, { useState } from 'react';
 import {
     Plus,
     Pencil,
     Trash2,
     Power,
 } from 'lucide-react';
+import EditServiceModal from './services/EditServiceModal';
 
 export interface IService {
     _id: string;
@@ -28,6 +29,16 @@ interface ManageServicesProps {
 }
 
 const ManageServices = ({ services }: ManageServicesProps) => {
+
+    const [selectedService, setSelectedService] = useState<IService | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const handleEditBtn = (service: IService) => {
+        setSelectedService(service);
+        setIsEditModalOpen(true);
+    };
+
+
 
     const totalServices = services.length;
 
@@ -194,11 +205,10 @@ const ManageServices = ({ services }: ManageServicesProps) => {
                                         {/* Status */}
                                         <td className="px-5 py-4">
                                             <span
-                                                className={`inline-block px-3 py-1 text-xs font-medium ${
-                                                    service.status === 'active'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-red-100 text-red-700'
-                                                }`}
+                                                className={`inline-block px-3 py-1 text-xs font-medium ${service.status === 'active'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-red-100 text-red-700'
+                                                    }`}
                                             >
                                                 {service.status === 'active'
                                                     ? 'Active'
@@ -212,6 +222,7 @@ const ManageServices = ({ services }: ManageServicesProps) => {
 
                                                 <button
                                                     type="button"
+                                                    onClick={() => handleEditBtn(service)}
                                                     title="Edit Service"
                                                     className="text-blue-600 transition hover:text-blue-800"
                                                 >
@@ -225,11 +236,10 @@ const ManageServices = ({ services }: ManageServicesProps) => {
                                                             ? 'Deactivate Service'
                                                             : 'Activate Service'
                                                     }
-                                                    className={`transition ${
-                                                        service.status === 'active'
-                                                            ? 'text-green-600 hover:text-green-800'
-                                                            : 'text-gray-400 hover:text-green-600'
-                                                    }`}
+                                                    className={`transition ${service.status === 'active'
+                                                        ? 'text-green-600 hover:text-green-800'
+                                                        : 'text-gray-400 hover:text-green-600'
+                                                        }`}
                                                 >
                                                     <Power size={19} />
                                                 </button>
@@ -270,6 +280,13 @@ const ManageServices = ({ services }: ManageServicesProps) => {
                 </div>
 
             </div>
+
+            {isEditModalOpen && selectedService && (
+                <EditServiceModal
+                    service={selectedService}
+                    onClose={() => setIsEditModalOpen(false)}
+                />
+            )}
 
         </div>
     );
