@@ -4,6 +4,7 @@
 import { useState, type FormEvent } from "react";
 import ImageUpload from "./imageUpload";
 import uploadImage from "@/lib/imgbb";
+import { toast } from "sonner";
 
 const categories = [
   "Haircut & Styling",
@@ -21,71 +22,76 @@ const AddServiceForm = () => {
 
 
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!image) {
-      alert("Please select a service image.");
-      return;
+        toast.error('Image Required', {
+            description: 'Please select a service image.',
+        });
+        return;
     }
 
     const formData = new FormData(e.currentTarget);
 
     const serviceInfo = {
-      serviceName: formData.get("serviceName"),
-      category: formData.get("category"),
-      description: formData.get("description"),
-      price: Number(formData.get("price")),
-      duration: Number(formData.get("duration")),
+        serviceName: formData.get('serviceName'),
+        category: formData.get('category'),
+        description: formData.get('description'),
+        price: Number(formData.get('price')),
+        duration: Number(formData.get('duration')),
     };
 
     try {
-      setLoading(true);
+        setLoading(true);
 
-      // 1. Upload image to ImgBB
-      const imageUrl = await uploadImage(image);
+        // 1. Upload image to ImgBB
+        const imageUrl = await uploadImage(image);
 
-      // 2. Prepare service data
-      const serviceData = {
-        ...serviceInfo,
-        image: imageUrl,
-        status: "active",
-      };
+        // 2. Prepare service data
+        const serviceData = {
+            ...serviceInfo,
+            image: imageUrl,
+            status: 'active',
+        };
 
-      // 3. Send data to backend
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/services`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(serviceData),
+        // 3. Send data to backend
+        const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/services`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(serviceData),
+            }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.message || 'Failed to add service');
         }
-      );
 
-      const data = await res.json();
+        toast.success('Service Added', {
+            description: 'Your new service has been added successfully.',
+        });
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to add service");
-      }
-
-      console.log("Service added successfully:", data);
-
-      alert("Service added successfully!");
+        e.currentTarget.reset();
 
     } catch (error) {
-      console.error("Service submission error:", error);
+        console.error('Service submission error:', error);
 
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to add service."
-      );
+        toast.error('Submission Failed', {
+            description: error instanceof Error
+                ? error.message
+                : 'Failed to add service.',
+        });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
 
   return (

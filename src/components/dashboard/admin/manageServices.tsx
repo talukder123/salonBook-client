@@ -11,6 +11,10 @@ import {
     Power,
 } from 'lucide-react';
 import EditServiceModal from './services/EditServiceModal';
+import DeleteConfirmModal from './services/DeleteConfirmModal';
+import { toast } from 'sonner';
+
+import { useRouter } from 'next/navigation';
 
 export interface IService {
     _id: string;
@@ -30,15 +34,19 @@ interface ManageServicesProps {
 
 const ManageServices = ({ services }: ManageServicesProps) => {
 
+    const router = useRouter();
+
     const [selectedService, setSelectedService] = useState<IService | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const [selectedDeleteService, setSelectedDeleteService] =
+        useState<IService | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const handleEditBtn = (service: IService) => {
         setSelectedService(service);
         setIsEditModalOpen(true);
     };
-
-
 
     const totalServices = services.length;
 
@@ -49,6 +57,83 @@ const ManageServices = ({ services }: ManageServicesProps) => {
     const inactiveServices = services.filter(
         (service) => service.status === 'inactive'
     ).length;
+
+    const handleDelete = async () => {
+        if (!selectedDeleteService) return;
+
+        try {
+            setDeleteLoading(true);
+
+            const response = await fetch(
+                `http://localhost:5000/services/${selectedDeleteService._id}`,
+                {
+                    method: 'DELETE'
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to delete service');
+            }
+
+            toast.success('Service Deleted', {
+                description: `${selectedDeleteService.serviceName} has been deleted successfully.`
+            });
+
+            setSelectedDeleteService(null);
+            router.refresh();
+
+        } catch (error) {
+            toast.error('Delete Failed', {
+                description: error instanceof Error
+                    ? error.message
+                    : 'Something went wrong.'
+            });
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
+    const handleToggleStatus = async (service: IService) => {
+        const newStatus =
+            service.status === 'active' ? 'inactive' : 'active';
+
+        try {
+            const response = await fetch(
+                `http://localhost:5000/services/${service._id}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to update status');
+            }
+
+            toast.success('Status Updated', {
+                description: `${service.serviceName} is now ${newStatus}.`,
+            });
+
+            router.refresh();
+
+        } catch (error) {
+            toast.error('Update Failed', {
+                description: error instanceof Error
+                    ? error.message
+                    : 'Something went wrong.',
+            });
+        }
+    };
+
 
     return (
         <div className="space-y-7 p-4 md:p-6 lg:p-8">
@@ -114,7 +199,7 @@ const ManageServices = ({ services }: ManageServicesProps) => {
             {/* Services Table */}
             <div className="overflow-hidden border border-gray-200 bg-white">
 
-                <div className="border-b border-gray-200 p-5">
+                <div className="border-b border-gray-200 p-3">
                     <h2 className="text-lg font-semibold text-gray-900">
                         All Services
                     </h2>
@@ -217,37 +302,47 @@ const ManageServices = ({ services }: ManageServicesProps) => {
                                         </td>
 
                                         {/* Actions */}
+                                        {/* Actions */}
                                         <td className="px-5 py-4">
-                                            <div className="flex items-center justify-center gap-3">
+                                            <div className="flex items-center justify-center gap-4">
 
+                                                {/* Edit */}
                                                 <button
                                                     type="button"
                                                     onClick={() => handleEditBtn(service)}
-                                                    title="Edit Service"
-                                                    className="text-blue-600 transition hover:text-blue-800"
+                                                    className="flex items-center cursor-pointer gap-2 border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-[#0B1F54] hover:text-[#0B1F54]"
                                                 >
-                                                    <Pencil size={18} />
+                                                    <Pencil size={16} />
+                                                    Edit
                                                 </button>
 
+                                                {/* Activate / Deactivate */}
                                                 <button
                                                     type="button"
+                                                    onClick={() => handleToggleStatus(service)}
                                                     title={
                                                         service.status === 'active'
                                                             ? 'Deactivate Service'
                                                             : 'Activate Service'
                                                     }
-                                                    className={`transition ${service.status === 'active'
-                                                        ? 'text-green-600 hover:text-green-800'
-                                                        : 'text-gray-400 hover:text-green-600'
+                                                    className={`flex items-center gap-2 text-sm cursor-pointer font-medium transition ${service.status === 'active'
+                                                        ? 'text-gray-700 hover:text-amber-600'
+                                                        : 'text-green-600 hover:text-green-700'
                                                         }`}
                                                 >
-                                                    <Power size={19} />
+                                                    <Power size={18} />
+
+                                                    {service.status === 'active'
+                                                        ? 'Deactivate'
+                                                        : 'Activate'}
                                                 </button>
 
+                                                {/* Delete */}
                                                 <button
                                                     type="button"
+                                                    onClick={() => setSelectedDeleteService(service)}
                                                     title="Delete Service"
-                                                    className="text-red-500 transition hover:text-red-700"
+                                                    className="p-2 text-red-500 transition cursor-pointer hover:text-red-700"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -285,6 +380,15 @@ const ManageServices = ({ services }: ManageServicesProps) => {
                 <EditServiceModal
                     service={selectedService}
                     onClose={() => setIsEditModalOpen(false)}
+                />
+            )}
+
+            {selectedDeleteService && (
+                <DeleteConfirmModal
+                    serviceName={selectedDeleteService.serviceName}
+                    loading={deleteLoading}
+                    onClose={() => setSelectedDeleteService(null)}
+                    onConfirm={handleDelete}
                 />
             )}
 

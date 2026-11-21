@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Google_Sans_Flex } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 const googleSans = Google_Sans_Flex({
   variable: "--font-google-sans",
@@ -20,6 +21,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {children}
+         <Toaster 
+         position="top-right"
+         duration={2500}
+         richColors />
       </body>
     </html>
   );

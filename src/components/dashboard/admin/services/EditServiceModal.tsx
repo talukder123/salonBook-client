@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 import { IService } from '../../../../../type/service';
+import { toast } from 'sonner';
 
 interface EditServiceModalProps {
     service: IService;
@@ -68,9 +69,11 @@ const EditServiceModal = ({
                 throw new Error(result.message || 'Failed to update service');
             }
 
-            alert('Service updated successfully!');
+            toast.success('Service Updated', {
+                description: 'Your service information has been updated successfully.',
+            });
+
             onClose();
-            window.location.reload();
 
         } catch (error) {
             console.error('Update failed:', error);
