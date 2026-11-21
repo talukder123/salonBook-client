@@ -6,10 +6,12 @@ import ImageUpload from "./imageUpload";
 import uploadImage from "@/lib/imgbb";
 
 const categories = [
-  "Hair",
-  "Skin Care",
-  "Nail Care",
+  "Haircut & Styling",
+  "Hair Coloring",
+  "Hair Treatment",
+  "Facial & Skincare",
   "Makeup",
+  "Manicure & Pedicure",
   "Spa & Massage",
 ];
 
@@ -40,19 +42,37 @@ const AddServiceForm = () => {
     try {
       setLoading(true);
 
-      // Upload image to ImgBB
+      // 1. Upload image to ImgBB
       const imageUrl = await uploadImage(image);
 
-      // Prepare service data
+      // 2. Prepare service data
       const serviceData = {
         ...serviceInfo,
         image: imageUrl,
         status: "active",
       };
 
-      console.log("Service Data:", serviceData);
+      // 3. Send data to backend
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/services`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(serviceData),
+        }
+      );
 
-      alert("Image uploaded successfully!");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to add service");
+      }
+
+      console.log("Service added successfully:", data);
+
+      alert("Service added successfully!");
 
     } catch (error) {
       console.error("Service submission error:", error);
@@ -60,7 +80,7 @@ const AddServiceForm = () => {
       alert(
         error instanceof Error
           ? error.message
-          : "Image upload failed."
+          : "Failed to add service."
       );
     } finally {
       setLoading(false);
