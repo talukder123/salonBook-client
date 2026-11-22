@@ -112,10 +112,35 @@ const ManageAppointments = () => {
   };
 
   // Temporary UI Status Update
-  const updateAppointmentStatus = (
-    appointmentId: string,
-    newStatus: AppointmentStatus
-  ) => {
+  
+// Update Appointment Status
+const updateAppointmentStatus = async (
+  appointmentId: string,
+  newStatus: AppointmentStatus
+) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/appointments/${appointmentId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Failed to update appointment."
+      );
+    }
+
+    // Update frontend state after successful backend update
     setAppointments((previousAppointments) =>
       previousAppointments.map((appointment) =>
         appointment._id === appointmentId
@@ -124,14 +149,19 @@ const ManageAppointments = () => {
       )
     );
 
-    if (newStatus === "confirmed") {
-      toast.success("Appointment confirmed in UI.");
-    } else {
-      toast.success("Appointment cancelled in UI.");
-    }
-
+    toast.success(result.message);
     setSelectedAppointment(null);
-  };
+  } catch (error) {
+    console.error("Appointment update failed:", error);
+
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Something went wrong."
+    );
+  }
+};
+
 
   return (
     <div className="min-h-screen space-y-6 bg-gray-50 p-4 sm:p-6 lg:p-8">
