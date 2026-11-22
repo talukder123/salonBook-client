@@ -4,6 +4,7 @@
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { CalendarDays, Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 const timeSlots = [
   "09:00 AM",
@@ -62,12 +63,20 @@ export default function AppointmentBookingPanel({
     try {
       setLoading(true);
 
+      const { data, error } = await authClient.token();
+
+      if (error || !data?.token) {
+        toast.error("Please login first.");
+        return;
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/appointments`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${data.token}`,
           },
           body: JSON.stringify(appointmentData),
         }
@@ -95,7 +104,7 @@ export default function AppointmentBookingPanel({
 
   return (
     <div className="p-5">
-     
+
       <div className="mb-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0B1F54]">
           Request an Appointment
@@ -111,7 +120,7 @@ export default function AppointmentBookingPanel({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-       
+
         <div>
           <label
             htmlFor="appointmentDate"
@@ -131,7 +140,7 @@ export default function AppointmentBookingPanel({
           />
         </div>
 
-        
+
         <div>
           <label
             htmlFor="timeSlot"
@@ -161,7 +170,7 @@ export default function AppointmentBookingPanel({
           </p>
         </div>
 
-        
+
         <div>
           <label
             htmlFor="message"
