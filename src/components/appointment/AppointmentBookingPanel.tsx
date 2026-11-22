@@ -3,7 +3,7 @@
 
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Loader2 } from "lucide-react";
 
 const timeSlots = [
   "09:00 AM",
@@ -29,14 +29,22 @@ const timeSlots = [
   "07:00 PM",
 ];
 
-export default function AppointmentBookingPanel() {
+interface AppointmentBookingPanelProps {
+  serviceId: string;
+}
+
+export default function AppointmentBookingPanel({
+  serviceId,
+}: AppointmentBookingPanelProps) {
+
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const today = new Date().toLocaleDateString("en-CA");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!date || !timeSlot) {
@@ -44,12 +52,50 @@ export default function AppointmentBookingPanel() {
       return;
     }
 
-    toast.info("Appointment booking will be implemented soon.");
+    const appointmentData = {
+      serviceId,
+      appointmentDate: date,
+      timeSlot,
+      message: message.trim(),
+    };
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/appointments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(appointmentData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.message || "Failed to submit appointment.");
+        return;
+      }
+
+      toast.success(result.message);
+
+      setDate("");
+      setTimeSlot("");
+      setMessage("");
+    } catch (error) {
+      console.error("Appointment submission error:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="p-5">
-      {/* Header */}
+     
       <div className="mb-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0B1F54]">
           Request an Appointment
@@ -65,8 +111,7 @@ export default function AppointmentBookingPanel() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-
-        {/* Date */}
+       
         <div>
           <label
             htmlFor="appointmentDate"
@@ -86,7 +131,7 @@ export default function AppointmentBookingPanel() {
           />
         </div>
 
-        {/* Time Slot */}
+        
         <div>
           <label
             htmlFor="timeSlot"
@@ -116,7 +161,7 @@ export default function AppointmentBookingPanel() {
           </p>
         </div>
 
-        {/* Message */}
+        
         <div>
           <label
             htmlFor="message"
@@ -139,13 +184,23 @@ export default function AppointmentBookingPanel() {
           />
         </div>
 
-        {/* Submit */}
+
         <button
           type="submit"
-          className="flex w-full items-center justify-center gap-2 bg-[#0B1F54] px-5 py-3.5 text-xs font-bold text-white transition hover:bg-[#173779]"
+          disabled={loading}
+          className="flex w-full items-center justify-center gap-2 bg-[#0B1F54] px-5 py-3.5 text-xs font-bold text-white transition hover:bg-[#173779] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          <CalendarDays size={15} />
-          Request Appointment
+          {loading ? (
+            <>
+              <Loader2 size={15} className="animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            <>
+              <CalendarDays size={15} />
+              Request Appointment
+            </>
+          )}
         </button>
       </form>
     </div>

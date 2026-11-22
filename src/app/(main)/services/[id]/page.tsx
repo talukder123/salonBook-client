@@ -291,7 +291,7 @@ export default async function ServiceDetailsPage({
 
               {/* Appointment Form */}
               {isActive ? (
-                <AppointmentBookingPanel />
+                <AppointmentBookingPanel serviceId={service._id}/>
               ) : (
                 <div className="p-6 text-center">
                   <CalendarDays
