@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import ImageUpload from "./imageUpload";
 import uploadImage from "@/lib/imgbb";
 import { toast } from "sonner";
@@ -19,86 +19,110 @@ const categories = [
 const AddServiceForm = () => {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [imageUploadKey, setImageUploadKey] = useState(0);
 
+  const isSubmitting = useRef(false);
 
-
-  
-const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Prevent multiple submissions
+    if (isSubmitting.current) return;
+
+    // Image validation
     if (!image) {
-        toast.error('Image Required', {
-            description: 'Please select a service image.',
-        });
-        return;
+      toast.error("Image Required", {
+        description: "Please select a service image.",
+      });
+      return;
     }
 
-    const formData = new FormData(e.currentTarget);
+    isSubmitting.current = true;
+    setLoading(true);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
     const serviceInfo = {
-        serviceName: formData.get('serviceName'),
-        category: formData.get('category'),
-        description: formData.get('description'),
-        price: Number(formData.get('price')),
-        duration: Number(formData.get('duration')),
+      serviceName: formData.get("serviceName"),
+      category: formData.get("category"),
+      description: formData.get("description"),
+      price: Number(formData.get("price")),
+      duration: Number(formData.get("duration")),
     };
 
     try {
-        setLoading(true);
+      // 1. Upload image to ImgBB
+      const imageUrl = await uploadImage(image);
 
-        // 1. Upload image to ImgBB
-        const imageUrl = await uploadImage(image);
+      // 2. Prepare service data
+      const serviceData = {
+        ...serviceInfo,
+        image: imageUrl,
+        status: "active",
+      };
 
-        // 2. Prepare service data
-        const serviceData = {
-            ...serviceInfo,
-            image: imageUrl,
-            status: 'active',
-        };
-
-        // 3. Send data to backend
-        const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/services`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(serviceData),
-            }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new Error(data.message || 'Failed to add service');
+      // 3. Send data to backend
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/services`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(serviceData),
         }
+      );
 
-        toast.success('Service Added', {
-            description: 'Your new service has been added successfully.',
+      const data = await res.json();
+
+      // 4. Duplicate service handling
+      if (res.status === 409) {
+        toast.error("Already Added!", {
+          description: "This service already exists.",
         });
+        return;
+      }
 
-        e.currentTarget.reset();
+      // 5. Other error handling
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to add service");
+      }
+
+      // 6. Success notification
+      toast.success("Service Added", {
+        description: "Your new service has been added successfully.",
+      });
+
+      // 7. Clear form and image preview
+      form.reset();
+      setImage(null);
+      setImageUploadKey((prev) => prev + 1);
 
     } catch (error) {
-        console.error('Service submission error:', error);
+      console.error("Service submission error:", error);
 
-        toast.error('Submission Failed', {
-            description: error instanceof Error
-                ? error.message
-                : 'Failed to add service.',
-        });
+      toast.error("Submission Failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to add service.",
+      });
     } finally {
-        setLoading(false);
+      // 8. Reset loading and submission state
+      isSubmitting.current = false;
+      setLoading(false);
     }
-};
-
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
 
       {/* Service Image */}
-      <ImageUpload onImageChange={setImage} />
+      <ImageUpload
+        key={imageUploadKey}
+        onImageChange={setImage}
+      />
 
       {/* Service Information */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
