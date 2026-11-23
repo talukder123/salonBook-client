@@ -1,11 +1,8 @@
-import React from 'react';
+import AdminMyProfilePage from "@/components/admin/AdminMyProfilePage";
 
-const AdminMyProfilePage = () => {
-    return (
-        <div>
-            ami ei admin!
-        </div>
-    );
+
+const Page = () => {
+    return <AdminMyProfilePage />;
 };
 
-export default AdminMyProfilePage;
+export default Page;

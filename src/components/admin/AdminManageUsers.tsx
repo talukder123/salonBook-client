@@ -66,7 +66,9 @@ const AdminManageUsers = () => {
         setUsers(result.users);
       } catch (error) {
         toast.error(
-          error instanceof Error ? error.message : "Something went wrong."
+          error instanceof Error
+            ? error.message
+            : "Something went wrong."
         );
       } finally {
         setLoading(false);
@@ -78,7 +80,7 @@ const AdminManageUsers = () => {
 
   // Block / Unblock customer
   const handleUpdateStatus = async () => {
-    if (!confirmUser) return;
+    if (!confirmUser || updating) return;
 
     setUpdating(true);
 
@@ -108,9 +110,12 @@ const AdminManageUsers = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to update user.");
+        throw new Error(
+          result.message || "Failed to update customer status."
+        );
       }
 
+      // Update customer status in the table
       setUsers((previousUsers) =>
         previousUsers.map((user) =>
           user._id === confirmUser._id
@@ -119,18 +124,24 @@ const AdminManageUsers = () => {
         )
       );
 
-      if (selectedUser?._id === confirmUser._id) {
-        setSelectedUser({
-          ...selectedUser,
-          isBlocked: newBlockedStatus,
-        });
-      }
+      // Update customer status in the details modal
+      setSelectedUser((previousUser) =>
+        previousUser?._id === confirmUser._id
+          ? { ...previousUser, isBlocked: newBlockedStatus }
+          : previousUser
+      );
 
       toast.success(result.message);
+
+      // Close confirmation modal
       setConfirmUser(null);
     } catch (error) {
+      console.error("Update Customer Status Error:", error);
+
       toast.error(
-        error instanceof Error ? error.message : "Something went wrong."
+        error instanceof Error
+          ? error.message
+          : "Something went wrong."
       );
     } finally {
       setUpdating(false);
@@ -325,7 +336,9 @@ const AdminManageUsers = () => {
 
               <div className="flex justify-between gap-4">
                 <span className="text-gray-500">Appointments</span>
-                <span>{selectedUser.appointmentsCount ?? 0}</span>
+                <span>
+                  {selectedUser.appointmentsCount ?? 0}
+                </span>
               </div>
 
               <div className="flex justify-between gap-4">
@@ -350,7 +363,9 @@ const AdminManageUsers = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm border border-gray-200 bg-white p-6">
             <h2 className="text-xl font-semibold text-gray-900">
-              {confirmUser.isBlocked ? "Unblock Customer?" : "Block Customer?"}
+              {confirmUser.isBlocked
+                ? "Unblock Customer?"
+                : "Block Customer?"}
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-gray-600">
@@ -363,7 +378,7 @@ const AdminManageUsers = () => {
               <button
                 onClick={() => setConfirmUser(null)}
                 disabled={updating}
-                className="border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
+                className="border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-60"
               >
                 Cancel
               </button>
