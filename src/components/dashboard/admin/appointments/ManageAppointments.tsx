@@ -15,6 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 
 type AppointmentStatus = "pending" | "confirmed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -71,8 +72,20 @@ const ManageAppointments = () => {
         setLoading(true);
         setError("");
 
+        const { data, error } = await authClient.token();
+
+        if (error || !data?.token) {
+          throw new Error("Authentication token not found.");
+        }
+
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/appointments`
+          `${process.env.NEXT_PUBLIC_API_URL}/appointments`,
+          {
+            headers: {
+              Authorization: `Bearer ${data.token}`,
+            },
+            cache: "no-store",
+          }
         );
 
         const result: IAppointmentsResponse = await response.json();
@@ -112,55 +125,62 @@ const ManageAppointments = () => {
   };
 
   // Temporary UI Status Update
-  
-// Update Appointment Status
-const updateAppointmentStatus = async (
-  appointmentId: string,
-  newStatus: AppointmentStatus
-) => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/appointments/${appointmentId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: newStatus,
-        }),
-      }
-    );
 
-    const result = await response.json();
+  // Update Appointment Status
+  const updateAppointmentStatus = async (
+    appointmentId: string,
+    newStatus: AppointmentStatus
+  ) => {
+    try {
+  const { data, error } = await authClient.token();
 
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.message || "Failed to update appointment."
-      );
+  if (error || !data?.token) {
+    throw new Error("Authentication token not found.");
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/appointments/${appointmentId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${data.token}`,
+      },
+      body: JSON.stringify({
+        status: newStatus,
+      }),
     }
+  );
 
-    // Update frontend state after successful backend update
-    setAppointments((previousAppointments) =>
-      previousAppointments.map((appointment) =>
-        appointment._id === appointmentId
-          ? { ...appointment, status: newStatus }
-          : appointment
-      )
-    );
+  const result = await response.json();
 
-    toast.success(result.message);
-    setSelectedAppointment(null);
-  } catch (error) {
-    console.error("Appointment update failed:", error);
-
-    toast.error(
-      error instanceof Error
-        ? error.message
-        : "Something went wrong."
+  if (!response.ok || !result.success) {
+    throw new Error(
+      result.message || "Failed to update appointment."
     );
   }
-};
+
+  // Update frontend state after successful backend update
+  setAppointments((previousAppointments) =>
+    previousAppointments.map((appointment) =>
+      appointment._id === appointmentId
+        ? { ...appointment, status: newStatus }
+        : appointment
+    )
+  );
+
+  toast.success(result.message);
+  setSelectedAppointment(null);
+} catch (error) {
+      console.error("Appointment update failed:", error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong."
+      );
+    }
+  };
 
 
   return (
@@ -287,11 +307,10 @@ const updateAppointmentStatus = async (
                     {/* Payment Status */}
                     <td className="px-5 py-4">
                       <span
-                        className={`inline-block border px-2.5 py-1 text-xs font-medium capitalize ${
-                          appointment.paymentStatus === "paid"
+                        className={`inline-block border px-2.5 py-1 text-xs font-medium capitalize ${appointment.paymentStatus === "paid"
                             ? "border-green-200 bg-green-50 text-green-700"
                             : "border-gray-200 bg-gray-100 text-gray-600"
-                        }`}
+                          }`}
                       >
                         {appointment.paymentStatus}
                       </span>
@@ -328,19 +347,19 @@ const updateAppointmentStatus = async (
 
                         {(appointment.status === "pending" ||
                           appointment.status === "confirmed") && (
-                          <button
-                            onClick={() =>
-                              updateAppointmentStatus(
-                                appointment._id,
-                                "cancelled"
-                              )
-                            }
-                            title="Cancel Appointment"
-                            className="border border-red-200 p-2 text-red-600 hover:bg-red-50"
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
+                            <button
+                              onClick={() =>
+                                updateAppointmentStatus(
+                                  appointment._id,
+                                  "cancelled"
+                                )
+                              }
+                              title="Cancel Appointment"
+                              className="border border-red-200 p-2 text-red-600 hover:bg-red-50"
+                            >
+                              <X size={16} />
+                            </button>
+                          )}
 
                       </div>
                     </td>
@@ -516,18 +535,18 @@ const updateAppointmentStatus = async (
 
               {(selectedAppointment.status === "pending" ||
                 selectedAppointment.status === "confirmed") && (
-                <button
-                  onClick={() =>
-                    updateAppointmentStatus(
-                      selectedAppointment._id,
-                      "cancelled"
-                    )
-                  }
-                  className="border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-                >
-                  Cancel Appointment
-                </button>
-              )}
+                  <button
+                    onClick={() =>
+                      updateAppointmentStatus(
+                        selectedAppointment._id,
+                        "cancelled"
+                      )
+                    }
+                    className="border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                  >
+                    Cancel Appointment
+                  </button>
+                )}
 
             </div>
           </div>

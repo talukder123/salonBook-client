@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import type { IService } from "../../../../../type/service";
 import AppointmentBookingPanel from "@/components/appointment/AppointmentBookingPanel";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 interface IApiResponse {
   service?: IService;
@@ -28,7 +30,14 @@ async function getService(
       return { service: null, error: "API URL is not configured." };
     }
 
+    const { token } = await auth.api.getToken({
+      headers: await headers(),
+    });
+
     const response = await fetch(`${apiUrl}/services/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       cache: "no-store",
     });
 
@@ -151,16 +160,14 @@ export default async function ServiceDetailsPage({
             <div>
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold ${
-                    isActive
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold ${isActive
                       ? "bg-green-50 text-green-700"
                       : "bg-red-50 text-red-700"
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`h-1.5 w-1.5 ${
-                      isActive ? "bg-green-600" : "bg-red-600"
-                    }`}
+                    className={`h-1.5 w-1.5 ${isActive ? "bg-green-600" : "bg-red-600"
+                      }`}
                   />
                   {isActive ? "Active" : "Inactive"}
                 </span>
@@ -231,9 +238,8 @@ export default async function ServiceDetailsPage({
                   </p>
 
                   <p
-                    className={`mt-1 text-sm font-semibold ${
-                      isActive ? "text-green-700" : "text-red-600"
-                    }`}
+                    className={`mt-1 text-sm font-semibold ${isActive ? "text-green-700" : "text-red-600"
+                      }`}
                   >
                     {isActive ? "Available for booking" : "Not available"}
                   </p>
@@ -291,7 +297,7 @@ export default async function ServiceDetailsPage({
 
               {/* Appointment Form */}
               {isActive ? (
-                <AppointmentBookingPanel serviceId={service._id}/>
+                <AppointmentBookingPanel serviceId={service._id} />
               ) : (
                 <div className="p-6 text-center">
                   <CalendarDays
