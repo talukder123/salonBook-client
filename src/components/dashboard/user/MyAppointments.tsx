@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Eye, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
+import { useRouter } from "next/navigation";
 
 type AppointmentStatus = "pending" | "confirmed" | "cancelled";
 type TabType = "all" | AppointmentStatus;
@@ -65,6 +66,8 @@ const MyAppointments = () => {
   // Cancellation states
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const router = useRouter();
 
   // Fetch customer appointments
   useEffect(() => {
@@ -196,7 +199,7 @@ const MyAppointments = () => {
 
   // Payment (will be implemented later)
   const handlePayment = (id: string) => {
-    console.log("Pay for appointment:", id);
+    router.push(`/checkout?appointmentId=${id}`);
   };
 
   // Filter appointments
@@ -204,8 +207,8 @@ const MyAppointments = () => {
     activeTab === "all"
       ? appointments
       : appointments.filter(
-          (appointment) => appointment.status === activeTab
-        );
+        (appointment) => appointment.status === activeTab
+      );
 
   // Format appointment date
   const formatDate = (date: string) =>
@@ -246,11 +249,10 @@ const MyAppointments = () => {
             key={tab.value}
             type="button"
             onClick={() => setActiveTab(tab.value)}
-            className={`border-b-2 px-5 py-3 text-sm font-semibold transition-colors ${
-              activeTab === tab.value
+            className={`border-b-2 px-5 py-3 text-sm font-semibold transition-colors ${activeTab === tab.value
                 ? "border-[#0B1F54] bg-[#0B1F54] text-white"
                 : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-[#0B1F54]"
-            }`}
+              }`}
           >
             {tab.label}
           </button>
@@ -363,9 +365,8 @@ const MyAppointments = () => {
                     {/* Appointment Status */}
                     <td className="px-5 py-5">
                       <span
-                        className={`inline-block border px-3 py-1.5 text-xs font-semibold capitalize ${
-                          statusStyles[appointment.status]
-                        }`}
+                        className={`inline-block border px-3 py-1.5 text-xs font-semibold capitalize ${statusStyles[appointment.status]
+                          }`}
                       >
                         {appointment.status}
                       </span>
@@ -374,11 +375,10 @@ const MyAppointments = () => {
                     {/* Payment Status */}
                     <td className="px-5 py-5">
                       <span
-                        className={`inline-block border px-3 py-1.5 text-xs font-semibold capitalize ${
-                          appointment.paymentStatus === "paid"
+                        className={`inline-block border px-3 py-1.5 text-xs font-semibold capitalize ${appointment.paymentStatus === "paid"
                             ? "border-emerald-300 bg-emerald-50 text-emerald-700"
                             : "border-amber-300 bg-amber-50 text-amber-700"
-                        }`}
+                          }`}
                       >
                         {appointment.paymentStatus}
                       </span>
