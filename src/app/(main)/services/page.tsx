@@ -3,10 +3,35 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { IService } from '../../../../type/service';
+import ServiceFilters from './ServiceFilters';
 
-const SalonServicesPage = async () => {
+interface SalonServicesPageProps {
+    searchParams: Promise<{
+        search?: string;
+        category?: string;
+        sort?: string;
+    }>;
+}
+
+const SalonServicesPage = async ({
+    searchParams,
+}: SalonServicesPageProps) => {
+
+    const params = await searchParams;
+
+    const search = params.search || '';
+    const category = params.category || '';
+    const sort = params.sort || '';
+
+    // Build API query
+    const query = new URLSearchParams();
+
+    if (search) query.set('search', search);
+    if (category) query.set('category', category);
+    if (sort) query.set('sort', sort);
+
     const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/services`,
+        `${process.env.NEXT_PUBLIC_API_URL}/services?${query.toString()}`,
         {
             cache: 'no-store',
         }
@@ -31,7 +56,6 @@ const SalonServicesPage = async () => {
 
             {/* Header */}
             <div className="mx-auto mb-10 max-w-7xl text-center">
-
                 <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#0B1F54]">
                     Our Services
                 </p>
@@ -44,12 +68,18 @@ const SalonServicesPage = async () => {
                     Discover professional beauty and salon services
                     designed to make you look and feel your best.
                 </p>
-
             </div>
 
-            {/* Services */}
             <div className="mx-auto max-w-7xl">
 
+                {/* Search, Filter & Sort */}
+                <ServiceFilters
+                    initialSearch={search}
+                    initialCategory={category}
+                    initialSort={sort}
+                />
+
+                {/* Services */}
                 {services.length > 0 ? (
 
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -61,9 +91,7 @@ const SalonServicesPage = async () => {
                                 className="overflow-hidden border border-gray-200 bg-white transition hover:shadow-md"
                             >
 
-                                {/* Image */}
                                 <div className="relative h-56 w-full bg-gray-100">
-
                                     {service.image && (
                                         <Image
                                             src={service.image}
@@ -73,14 +101,11 @@ const SalonServicesPage = async () => {
                                             className="object-cover"
                                         />
                                     )}
-
                                 </div>
 
-                                {/* Content */}
                                 <div className="space-y-4 p-5">
 
                                     <div className="flex items-center justify-between gap-3">
-
                                         <span className="bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0B1F54]">
                                             {service.category}
                                         </span>
@@ -88,7 +113,6 @@ const SalonServicesPage = async () => {
                                         <span className="text-sm font-semibold text-[#0B1F54]">
                                             ৳{service.price}
                                         </span>
-
                                     </div>
 
                                     <div>
@@ -124,19 +148,17 @@ const SalonServicesPage = async () => {
 
                     <div className="border border-gray-200 bg-white px-5 py-16 text-center">
                         <h2 className="text-xl font-semibold text-gray-800">
-                            No Services Available
+                            No Services Found
                         </h2>
 
                         <p className="mt-2 text-sm text-gray-500">
-                            There are currently no active services available.
-                            Please check back later.
+                            Try changing your search or filters.
                         </p>
                     </div>
 
                 )}
 
             </div>
-
         </div>
     );
 };
