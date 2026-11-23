@@ -1,9 +1,10 @@
+import AdminManageUsers from '@/components/admin/AdminManageUsers';
 import React from 'react';
 
 const AdminManageUserPage = () => {
     return (
         <div>
-            Manage app users!
+            <AdminManageUsers></AdminManageUsers>
         </div>
     );
 };
