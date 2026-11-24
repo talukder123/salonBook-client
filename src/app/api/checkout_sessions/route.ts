@@ -103,11 +103,11 @@ export async function POST(req: Request) {
             ],
             mode: "payment",
 
-            client_reference_id: appointment._id,
+            client_reference_id: String(appointment._id),
 
             metadata: {
-                appointmentId: appointment._id,
-                customerId: appointment.customerId,
+                appointmentId: String(appointment._id),
+                customerId: String(appointment.customerId),
             },
 
             success_url: `${process.env.BETTER_AUTH_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,

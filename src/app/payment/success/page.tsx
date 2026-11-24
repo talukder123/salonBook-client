@@ -37,7 +37,7 @@ const SuccessPage = async ({ searchParams }: SuccessPageProps) => {
         );
     }
 
-    return <PaymentSuccessClient sessionId={session_id} />;
+    return <PaymentSuccessClient />;
 };
 
 export default SuccessPage;
