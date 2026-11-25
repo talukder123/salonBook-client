@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SalonBook – Salon Appointment Booking Platform
 
-## Getting Started
+SalonBook is a full-stack salon appointment booking platform that connects customers with salon services through a simple and convenient digital experience. It provides separate functionalities for customers and administrators to manage appointments, services, and payments.
 
-First, run the development server:
+## 👥 System Actors
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Customer
+- Register and log in to the platform.
+- Explore available salon services.
+- View service details and pricing.
+- Request salon appointments.
+- Track appointment status.
+- Pay for confirmed appointments.
+- View payment history.
+- Manage personal profile.
+
+### 2. Administrator
+- Access the admin dashboard.
+- Add, update, and delete salon services.
+- Manage customer appointments.
+- Confirm or manage appointment requests.
+- Monitor payment transactions.
+- Manage personal profile.
+
+## 🔄 Application Workflow
+
+```mermaid
+flowchart TD
+    A[User Visits SalonBook] --> B{Authentication}
+    B -->|Customer| C[Customer Dashboard]
+    B -->|Admin| D[Admin Dashboard]
+
+    C --> E[Explore Services]
+    E --> F[Request Appointment]
+    F --> G[Admin Reviews Request]
+    G --> H{Appointment Approved?}
+    H -->|No| I[Pending / Rejected]
+    H -->|Yes| J[Proceed to Payment]
+    J --> K[Stripe Checkout]
+    K --> L[Verified Payment Webhook]
+    L --> M[Payment & Transaction Updated]
+
+    D --> N[Manage Services]
+    D --> O[Manage Appointments]
+    D --> P[Monitor Transactions]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Core Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Authentication & Authorization:** Secure authentication with customer and admin role-based access.
+- **Service Management:** Complete salon service management for administrators.
+- **Appointment Booking:** Customers can request and manage salon appointments.
+- **Appointment Management:** Administrators can review and manage booking requests.
+- **Online Payment:** Secure payment processing through Stripe Checkout.
+- **Transaction Management:** Store and monitor verified payment transactions.
+- **Customer Dashboard:** Personalized dashboard for appointments and payment history.
+- **Admin Dashboard:** Centralized management of services, appointments, and transactions.
+- **Profile Management:** Update and manage user information.
+- **Image Upload:** Upload service images using ImgBB.
+- **Responsive Interface:** User-friendly experience across different screen sizes.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Technologies Used
 
-## Learn More
+| Category | Technologies |
+|---|---|
+| Frontend | Next.js, React, TypeScript |
+| Styling | Tailwind CSS, DaisyUI |
+| Authentication | Better Auth |
+| Backend | Node.js, Express.js |
+| Database | MongoDB |
+| Authorization | JWT (JOSE) |
+| Payment | Stripe Checkout, Stripe Webhooks |
+| Image Hosting | ImgBB |
+| Development Tools | Git, GitHub, ESLint |
 
-To learn more about Next.js, take a look at the following resources:
+## 🏗️ System Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+SalonBook follows a client-server architecture.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Frontend:** Handles user interfaces, navigation, dashboards, and client-side interactions.
+- **Backend:** Provides RESTful APIs, authentication verification, authorization, and business logic.
+- **Database:** MongoDB stores users, services, appointments, and transactions.
+- **Payment Gateway:** Stripe handles secure payment processing, while verified webhooks confirm successful transactions.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**SalonBook** – Simplifying Salon Appointments.
