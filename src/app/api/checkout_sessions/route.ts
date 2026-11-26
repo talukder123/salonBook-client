@@ -3,8 +3,12 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
+    console.log("========== CHECKOUT STARTED ==========");
+
     try {
         const { appointmentId } = await req.json();
+
+        console.log("1. Appointment ID:", appointmentId);
 
         if (!appointmentId) {
             return NextResponse.json(
@@ -13,8 +17,9 @@ export async function POST(req: Request) {
             );
         }
 
-        // Get authentication token
         const token = req.headers.get("authorization");
+
+        console.log("2. Authorization token exists:", !!token);
 
         if (!token) {
             return NextResponse.json(
@@ -23,7 +28,8 @@ export async function POST(req: Request) {
             );
         }
 
-        // Fetch appointment from Express backend
+        console.log("3. Fetching appointment from Express...");
+
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/my-appointments/${appointmentId}`,
             {
@@ -35,7 +41,11 @@ export async function POST(req: Request) {
             }
         );
 
+        console.log("4. Appointment API status:", response.status);
+
         const result = await response.json();
+
+        console.log("5. Appointment API response:", result);
 
         if (!response.ok) {
             return NextResponse.json(
@@ -50,44 +60,30 @@ export async function POST(req: Request) {
         const appointment = result.appointment ?? result.data ?? result;
 
         if (!appointment) {
-            return NextResponse.json(
-                { success: false, message: "Appointment not found." },
-                { status: 404 }
-            );
+            throw new Error("Appointment not found.");
         }
 
-        // Validate appointment
+        console.log("6. Appointment status:", appointment.status);
+        console.log("7. Payment status:", appointment.paymentStatus);
+        console.log("8. Service price:", appointment.servicePrice);
+        console.log("9. Customer ID:", appointment.customerId);
+
         if (appointment.status !== "confirmed") {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "Only confirmed appointments can be paid.",
-                },
-                { status: 400 }
-            );
+            throw new Error("Only confirmed appointments can be paid.");
         }
 
         if (appointment.paymentStatus !== "unpaid") {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: "This appointment has already been paid.",
-                },
-                { status: 400 }
-            );
+            throw new Error("This appointment has already been paid.");
         }
 
-        // Validate price
         const servicePrice = Number(appointment.servicePrice);
 
         if (!Number.isFinite(servicePrice) || servicePrice <= 0) {
-            return NextResponse.json(
-                { success: false, message: "Invalid appointment price." },
-                { status: 400 }
-            );
+            throw new Error("Invalid appointment price.");
         }
 
-        // Create Stripe Checkout Session
+        console.log("10. Creating Stripe Checkout Session...");
+
         const session = await stripe.checkout.sessions.create({
             line_items: [
                 {
@@ -102,22 +98,23 @@ export async function POST(req: Request) {
                 },
             ],
             mode: "payment",
-
             client_reference_id: String(appointment._id),
-
             metadata: {
                 appointmentId: String(appointment._id),
                 customerId: String(appointment.customerId),
             },
-
             success_url: `${process.env.BETTER_AUTH_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-
             cancel_url: `${process.env.BETTER_AUTH_URL}/payment/cancel`,
         });
+
+        console.log("11. Stripe Session ID:", session.id);
+        console.log("12. Stripe Session URL exists:", !!session.url);
 
         if (!session.url) {
             throw new Error("Stripe Checkout URL was not generated.");
         }
+
+        console.log("========== CHECKOUT SUCCESS ==========");
 
         return NextResponse.json({
             success: true,
@@ -125,7 +122,8 @@ export async function POST(req: Request) {
         });
 
     } catch (error) {
-        console.error("Stripe Checkout Error:", error);
+        console.error("========== CHECKOUT FAILED ==========");
+        console.error(error);
 
         return NextResponse.json(
             {

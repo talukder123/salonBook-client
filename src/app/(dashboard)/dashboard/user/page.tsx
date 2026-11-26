@@ -1,14 +1,12 @@
 
-import CheckJWT from '@/components/checkJwt';
-import React from 'react';
+import UserOverview from "@/components/dashboard/user/UserOverview";
 
 const UserDashboardPage = () => {
-    return (
-        <div>
-            user dashboard
-            <CheckJWT></CheckJWT>
-        </div>
-    );
+  return (
+    <div>
+      <UserOverview />
+    </div>
+  );
 };
 
 export default UserDashboardPage;

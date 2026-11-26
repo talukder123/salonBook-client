@@ -1,11 +1,8 @@
-import React from 'react';
+import AdminTransactions from "@/components/admin/AdminTransactions";
+
 
 const AdminTransactionsPage = () => {
-    return (
-        <div>
-            Tekkka!
-        </div>
-    );
+  return <AdminTransactions />;
 };
 
 export default AdminTransactionsPage;
