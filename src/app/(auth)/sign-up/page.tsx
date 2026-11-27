@@ -1,9 +1,9 @@
+
 "use client";
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 import {
   Eye,
@@ -18,9 +18,6 @@ import signupImage from "../../../../public/images/AUTH/sign-up-page.jpg";
 import { authClient } from "@/lib/auth-client";
 
 const SignUpPage = () => {
-
-  const router = useRouter();
-
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -36,10 +33,78 @@ const SignUpPage = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  // Get a safe callback URL
+  const getSafeCallbackUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const callbackUrl = params.get("callbackUrl");
+
+    if (!callbackUrl) return null;
+
+    if (
+      !callbackUrl.startsWith("/") ||
+      callbackUrl.startsWith("//") ||
+      callbackUrl.includes("\\")
+    ) {
+      return null;
+    }
+
+    const pathname = callbackUrl.split("?")[0].split("#")[0];
+
+    const blockedRoutes = [
+      "/",
+      "/sign-in",
+      "/signin",
+      "/sign-up",
+      "/signup",
+      "/forbidden",
+    ];
+
+    if (
+      blockedRoutes.some(
+        (route) =>
+          pathname === route ||
+          (route !== "/" && pathname.startsWith(`${route}/`))
+      )
+    ) {
+      return null;
+    }
+
+    return callbackUrl;
+  };
+
+  // Upload profile image to ImgBB
+  const uploadProfileImage = async (file: File) => {
+    const apiKey = process.env.NEXT_PUBLIC_IMG_BB_API;
+
+    if (!apiKey) {
+      throw new Error("ImgBB API key is not configured.");
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(
+      `https://api.imgbb.com/1/upload?key=${apiKey}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success || !result.data?.url) {
+      throw new Error("Profile image upload failed.");
+    }
+
+    return result.data.url as string;
+  };
+
+  // Email Sign Up
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -73,42 +138,55 @@ const SignUpPage = () => {
       return;
     }
 
-    if (profileImage && !imageUrl.trim()) {
-      setError(
-        "File upload is not connected yet. Please use an image URL or remove the selected file."
-      );
+    if (profileImage && !profileImage.type.startsWith("image/")) {
+      setError("Please select a valid image file.");
       return;
     }
 
     try {
       setIsLoading(true);
 
-      const { data, error } = await authClient.signUp.email({
+      let uploadedImageUrl = imageUrl.trim();
+
+      if (profileImage) {
+        uploadedImageUrl = await uploadProfileImage(profileImage);
+      }
+
+      const { error: signupError } = await authClient.signUp.email({
         name: fullName.trim(),
         email: email.trim(),
         password,
-        image: imageUrl.trim() || undefined,
+        image: uploadedImageUrl || undefined,
       });
 
-      if (error) {
-        setError(error.message || "Unable to create your account.");
+      if (signupError) {
+        setError(
+          signupError.message || "Unable to create your account."
+        );
         return;
       }
 
-      console.log("Sign Up Successful:", data);
-
       setSuccess("Your account has been created successfully!");
 
-      router.push("/");
-      router.refresh();
+      const callbackUrl = getSafeCallbackUrl();
+
+      // Normal signup → Home
+      // Private route signup → Requested route
+      window.location.replace(callbackUrl || "/");
     } catch (err) {
       console.error("Sign Up Error:", err);
-      setError("Something went wrong. Please try again.");
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Google Sign Up
   const handleGoogleSignUp = async () => {
     setError("");
     setSuccess("");
@@ -116,12 +194,15 @@ const SignUpPage = () => {
     try {
       setIsGoogleLoading(true);
 
+      const callbackUrl = getSafeCallbackUrl();
+
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: callbackUrl || "/",
       });
     } catch (err) {
       console.error("Google Sign Up Error:", err);
+
       setError("Google sign up failed. Please try again.");
       setIsGoogleLoading(false);
     }
@@ -364,7 +445,7 @@ const SignUpPage = () => {
                 />
 
                 <p className="mt-2 text-xs text-gray-400">
-                  File upload will be available after ImageBB integration.
+                  Your profile image will be uploaded to ImgBB.
                 </p>
               </div>
 
@@ -427,7 +508,9 @@ const SignUpPage = () => {
                 />
               </svg>
 
-              {isGoogleLoading ? "Connecting to Google..." : "Sign Up with Google"}
+              {isGoogleLoading
+                ? "Connecting to Google..."
+                : "Sign Up with Google"}
             </button>
 
             {/* Sign In Link */}
@@ -440,7 +523,6 @@ const SignUpPage = () => {
                 Sign In
               </Link>
             </p>
-
           </div>
         </div>
 
@@ -455,7 +537,6 @@ const SignUpPage = () => {
             className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
-
       </div>
     </div>
   );

@@ -4,40 +4,36 @@ import { auth } from "@/lib/auth";
 
 type UserRole = "admin" | "user";
 
-// Authentication routes
 const AUTH_ROUTES = ["/sign-in", "/sign-up"];
 
-// Protected routes
 const ADMIN_ROUTE = "/dashboard/admin";
 const CUSTOMER_ROUTE = "/dashboard/user";
 const DASHBOARD_ROUTE = "/dashboard";
 const SERVICE_DETAILS_ROUTE = "/services";
 
-// Check exact route or nested route
 const isRoute = (pathname: string, route: string) => {
   return pathname === route || pathname.startsWith(`${route}/`);
 };
 
-// Default dashboard based on role
 const getDashboardUrl = (role: UserRole) => {
   return role === "admin"
     ? "/dashboard/admin/dashboard"
     : "/dashboard";
 };
 
-// Role-based route authorization
+// Check role-based route access
 const hasRouteAccess = (pathname: string, role: UserRole) => {
-  // Admin dashboard: Admin only
+  // Admin routes
   if (isRoute(pathname, ADMIN_ROUTE)) {
     return role === "admin";
   }
 
-  // Customer dashboard: User only
+  // Customer-specific routes
   if (isRoute(pathname, CUSTOMER_ROUTE)) {
     return role === "user";
   }
 
-  // General dashboard: Customer only
+  // General dashboard routes
   if (isRoute(pathname, DASHBOARD_ROUTE)) {
     return role === "user";
   }
@@ -75,7 +71,7 @@ const getSafeCallbackUrl = (
       return null;
     }
 
-    // Prevent redirecting to unauthorized routes
+    // Prevent unauthorized callback redirects
     if (!hasRouteAccess(url.pathname, role)) {
       return null;
     }
@@ -91,11 +87,10 @@ export async function proxy(request: NextRequest) {
 
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
-  // Dashboard routes are protected
+  // Protect all dashboard routes
   const isDashboardRoute = isRoute(pathname, DASHBOARD_ROUTE);
 
-  // Only /services/[id] is protected.
-  // /services remains public.
+  // Protect only /services/[id]
   const isServiceDetailsRoute =
     isRoute(pathname, SERVICE_DETAILS_ROUTE) &&
     pathname.split("/").filter(Boolean).length === 2;
@@ -103,7 +98,7 @@ export async function proxy(request: NextRequest) {
   const isPrivateRoute =
     isDashboardRoute || isServiceDetailsRoute;
 
-  // Continue for unrelated public routes
+  // Allow unrelated public routes
   if (!isAuthRoute && !isPrivateRoute) {
     return NextResponse.next();
   }
@@ -148,7 +143,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get authenticated user information
+  // Authenticated user information
   const user = session.user as typeof session.user & {
     role?: string;
     isBlocked?: boolean;
@@ -156,8 +151,8 @@ export async function proxy(request: NextRequest) {
 
   const role = user.role;
 
-  // Validate user role
-  if (!role || !["admin", "user"].includes(role)) {
+  // Validate role
+  if (role !== "admin" && role !== "user") {
     if (isPrivateRoute) {
       return NextResponse.redirect(
         new URL("/forbidden", request.url)
@@ -167,7 +162,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const userRole = role as UserRole;
+  const userRole: UserRole = role;
 
   // Blocked users cannot access private routes
   if (user.isBlocked === true && isPrivateRoute) {
@@ -178,7 +173,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Redirect authenticated users away from signin/signup
+  // Redirect authenticated users away from auth pages
   if (isAuthRoute) {
     if (user.isBlocked === true) {
       return NextResponse.next();
@@ -190,11 +185,11 @@ export async function proxy(request: NextRequest) {
       userRole
     );
 
-    const redirectUrl =
-      callbackUrl || getDashboardUrl(userRole);
-
     return NextResponse.redirect(
-      new URL(redirectUrl, request.url)
+      new URL(
+        callbackUrl || getDashboardUrl(userRole),
+        request.url
+      )
     );
   }
 
@@ -208,7 +203,6 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Proxy matcher
 export const config = {
   matcher: [
     "/dashboard/:path*",
