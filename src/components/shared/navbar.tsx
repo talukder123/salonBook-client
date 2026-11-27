@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   UserRound,
   LogOut,
+  ChevronDown,
 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
@@ -46,10 +47,15 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const dashboardHref =
-  user.role === "admin"
+  const isAdmin = user.role === "admin";
+
+  const dashboardHref = isAdmin
     ? "/dashboard/admin"
     : "/dashboard/user";
+
+  const profileHref = isAdmin
+    ? "/dashboard/admin/myprofile"
+    : "/dashboard/user/my-profile";
 
   const handleLogout = async () => {
     try {
@@ -65,16 +71,16 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
 
   return (
     <Popover open={profileOpen} onOpenChange={setProfileOpen}>
-      {/* Avatar Trigger */}
+      {/* Profile Trigger */}
       <PopoverTrigger
         render={
           <button
             type="button"
             aria-label="Open profile menu"
             aria-expanded={profileOpen}
-            className="flex items-center justify-center rounded-full outline-none transition-opacity hover:opacity-80"
+            className="flex items-center gap-2 rounded-full border border-gray-300/70 bg-white/70 px-2 py-1.5 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-[#0B1F54] hover:shadow-[0_0_0_2px_rgba(11,31,84,0.08)] dark:border-zinc-600/70 dark:bg-zinc-900/70 dark:hover:border-blue-400"
           >
-            <Avatar className="h-10 w-10 rounded-full border-0 ring-0">
+            <Avatar className="h-9 w-9 rounded-full border-0 ring-0">
               <AvatarImage
                 src={user.image || ""}
                 alt={user.name || "User"}
@@ -85,21 +91,29 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
                 {user.name?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
+
+            <ChevronDown
+              size={17}
+              strokeWidth={2}
+              className={`text-gray-500 transition-transform duration-200 ${
+                profileOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
         }
       >
         Open Profile
       </PopoverTrigger>
 
-      {/* Profile Dropdown */}
+      {/* Profile Dropdown Content */}
       <PopoverContent
         align="end"
         sideOffset={12}
-        className="w-[290px] overflow-hidden rounded-[24px] border border-white/80 bg-white/75 p-2.5 shadow-[0_12px_45px_rgba(15,23,42,0.16)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-900/75 dark:shadow-black/30"
+        className="w-[290px] overflow-hidden rounded-none border border-gray-200 bg-white p-2.5 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
       >
         <div className="space-y-2">
           {/* User Information */}
-          <PopoverHeader className="flex flex-row items-center gap-3 rounded-2xl bg-white/55 px-3 py-3 dark:bg-white/[0.06]">
+          <PopoverHeader className="flex flex-row items-center gap-3 bg-gray-50 px-3 py-3 dark:bg-zinc-800">
             <Avatar className="h-11 w-11 shrink-0 rounded-full border-0 ring-0">
               <AvatarImage
                 src={user.image || ""}
@@ -124,20 +138,22 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
           </PopoverHeader>
 
           {/* Navigation Items */}
-          <div className="space-y-1 rounded-2xl bg-white/45 p-1.5 dark:bg-white/[0.04]">
+          <div className="space-y-1">
+            {/* Dashboard */}
             <Link
               href={dashboardHref}
               onClick={() => setProfileOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-white/90 hover:text-[#0B1F54] hover:shadow-sm dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+              className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-blue-50 hover:text-[#0B1F54] dark:text-gray-200 dark:hover:bg-zinc-800 dark:hover:text-white"
             >
               <LayoutDashboard size={18} strokeWidth={1.8} />
               <span>Dashboard</span>
             </Link>
 
+            {/* Manage Profile */}
             <Link
-              href="/manage-profile"
+              href={profileHref}
               onClick={() => setProfileOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-white/90 hover:text-[#0B1F54] hover:shadow-sm dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+              className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-blue-50 hover:text-[#0B1F54] dark:text-gray-200 dark:hover:bg-zinc-800 dark:hover:text-white"
             >
               <UserRound size={18} strokeWidth={1.8} />
               <span>Manage Profile</span>
@@ -146,12 +162,12 @@ const ProfileDropdown = ({ user }: ProfileDropdownProps) => {
 
           {/* Logout */}
           <div className="pt-1">
-            <Separator className="mb-2 bg-gray-200/70 dark:bg-white/10" />
+            <Separator className="mb-2 bg-gray-200 dark:bg-zinc-700" />
 
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-xl bg-red-50/80 px-3 py-3 text-left text-sm font-medium text-red-600 transition-all duration-200 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+              className="flex w-full items-center gap-3 bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
             >
               <LogOut size={18} strokeWidth={1.8} />
               <span>Logout</span>

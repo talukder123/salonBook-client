@@ -63,14 +63,35 @@ const AdminOverview = () => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-36 animate-pulse rounded-2xl border border-gray-100 bg-gray-50"
-          />
-        ))}
-      </div>
+      <section>
+        {/* Heading Skeleton */}
+        <div className="mb-7 space-y-3">
+          <div className="h-4 w-36 animate-pulse bg-gray-200" />
+          <div className="h-8 w-64 animate-pulse bg-gray-200" />
+          <div className="h-4 w-80 max-w-full animate-pulse bg-gray-100" />
+        </div>
+
+        {/* Statistics Cards Skeleton */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="border border-gray-100 bg-white p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 space-y-4">
+                  <div className="h-4 w-40 max-w-full animate-pulse bg-gray-200" />
+                  <div className="h-9 w-20 animate-pulse bg-gray-200" />
+                </div>
+
+                <div className="h-12 w-12 animate-pulse bg-gray-100" />
+              </div>
+
+              <div className="mt-5 h-1 w-full animate-pulse bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      </section>
     );
   }
 
