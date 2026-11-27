@@ -1,9 +1,9 @@
+
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Eye,
   EyeOff,
@@ -16,18 +16,73 @@ import signinImage from "../../../../public/images/AUTH/sign-in-page.jpg";
 import { authClient } from "@/lib/auth-client";
 
 const SignInPage = () => {
-  const router = useRouter();
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+
+  const [error, setError] = useState(() => {
+    if (typeof window === "undefined") return "";
+
+    const params = new URLSearchParams(window.location.search);
+
+    return params.get("error") === "blocked"
+      ? "Your account has been blocked. Please contact support."
+      : "";
+  });
+
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // Validate callback URL
+  const getSafeCallbackUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const callbackUrl = params.get("callbackUrl");
+
+    if (!callbackUrl) return null;
+
+    try {
+      // Prevent external redirects
+      if (
+        !callbackUrl.startsWith("/") ||
+        callbackUrl.startsWith("//") ||
+        callbackUrl.includes("\\")
+      ) {
+        return null;
+      }
+
+      const url = new URL(callbackUrl, window.location.origin);
+
+      if (url.origin !== window.location.origin) {
+        return null;
+      }
+
+      // Prevent redirect loops
+      const blockedPaths = [
+        "/sign-in",
+        "/signin",
+        "/sign-up",
+        "/forbidden",
+      ];
+
+      if (
+        blockedPaths.some(
+          (path) =>
+            url.pathname === path ||
+            url.pathname.startsWith(`${path}/`)
+        )
+      ) {
+        return null;
+      }
+
+      return url.pathname + url.search + url.hash;
+    } catch {
+      return null;
+    }
+  };
 
   // Email and Password Login
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -51,7 +106,7 @@ const SignInPage = () => {
     try {
       setIsLoading(true);
 
-      const { data, error } = await authClient.signIn.email({
+      const { error } = await authClient.signIn.email({
         email: email.trim(),
         password,
       });
@@ -61,12 +116,13 @@ const SignInPage = () => {
         return;
       }
 
-      console.log("Sign In Successful:", data);
-
       setSuccess("You have signed in successfully!");
 
-      router.push("/");
-      router.refresh();
+      // Redirect directly to the requested page.
+      // Proxy will verify the session and user role.
+      const callbackUrl = getSafeCallbackUrl();
+
+      window.location.replace(callbackUrl || "/sign-in");
     } catch (err) {
       console.error("Sign In Error:", err);
       setError("Something went wrong. Please try again.");
@@ -83,9 +139,11 @@ const SignInPage = () => {
     try {
       setIsGoogleLoading(true);
 
+      const callbackUrl = getSafeCallbackUrl();
+
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: callbackUrl || "/sign-in",
       });
     } catch (err) {
       console.error("Google Login Error:", err);
@@ -235,9 +293,11 @@ const SignInPage = () => {
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
             <div className="h-px flex-1 bg-gray-200" />
+
             <span className="text-xs text-gray-400 font-medium">
               OR CONTINUE WITH
             </span>
+
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
@@ -249,13 +309,27 @@ const SignInPage = () => {
             className="w-full h-12 border border-gray-300 hover:border-[#0B1F54] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 transition"
           >
             <svg viewBox="0 0 48 48" className="w-5 h-5">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" />
-              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.72 7.18l7.63 5.91c4.45-4.1 7.13-10.14 7.13-17.56Z" />
-              <path fill="#FBBC05" d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a24 24 0 0 0 0 21.56l7.98-6.19Z" />
-              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.89l-7.63-5.91c-2.12 1.42-4.83 2.26-8.27 2.26-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z" />
+              <path
+                fill="#EA4335"
+                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"
+              />
+              <path
+                fill="#4285F4"
+                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.72 7.18l7.63 5.91c4.45-4.1 7.13-10.14 7.13-17.56Z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a24 24 0 0 0 0 21.56l7.98-6.19Z"
+              />
+              <path
+                fill="#34A853"
+                d="M24 48c6.48 0 11.93-2.13 15.9-5.89l-7.63-5.91c-2.12 1.42-4.83 2.26-8.27 2.26-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"
+              />
             </svg>
 
-            {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
+            {isGoogleLoading
+              ? "Connecting to Google..."
+              : "Continue with Google"}
           </button>
 
           {/* Sign Up Link */}
