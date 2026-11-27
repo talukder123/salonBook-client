@@ -7,6 +7,12 @@ import {
   Phone,
   Clock,
 } from "lucide-react";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaXTwitter,
+  FaTiktok,
+} from "react-icons/fa6";
 
 const Footer = () => {
   return (
@@ -33,6 +39,41 @@ const Footer = () => {
               professional care and a seamless booking journey
               with SalonBook.
             </p>
+
+            {/* Social Media Icons */}
+            <div className="mt-6 flex items-center gap-5">
+              <Link
+                href="#"
+                aria-label="Facebook"
+                className="text-gray-300 transition hover:text-blue-400"
+              >
+                <FaFacebookF size={20} />
+              </Link>
+
+              <Link
+                href="#"
+                aria-label="Instagram"
+                className="text-gray-300 transition hover:text-pink-400"
+              >
+                <FaInstagram size={21} />
+              </Link>
+
+              <Link
+                href="#"
+                aria-label="X"
+                className="text-gray-300 transition hover:text-white"
+              >
+                <FaXTwitter size={20} />
+              </Link>
+
+              <Link
+                href="#"
+                aria-label="TikTok"
+                className="text-gray-300 transition hover:text-pink-400"
+              >
+                <FaTiktok size={20} />
+              </Link>
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -52,7 +93,6 @@ const Footer = () => {
                   Browse Services
                 </Link>
               </li>
-             
             </ul>
           </div>
 
@@ -75,7 +115,7 @@ const Footer = () => {
 
               <li className="flex items-start gap-3">
                 <MapPin size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                <span>Your Salon Address, Bangladesh</span>
+                <span>Gazipur, Bangladesh</span>
               </li>
             </ul>
           </div>
@@ -123,7 +163,7 @@ const Footer = () => {
           </p>
 
           <p className="text-sm text-gray-400">
-            Your beauty, our priority.
+            Your beauty, our priority
           </p>
         </div>
 
