@@ -1,6 +1,7 @@
 import Banner from "@/components/homepage/banner";
 import FeaturedServices from "@/components/homepage/FeaturedSection";
 import SalonServiceCategories from "@/components/homepage/SalonServiceCategories";
+import WhyChooseSalonBook from "@/components/homepage/WhyChooseSalonBook";
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       <Banner></Banner>
       <FeaturedServices></FeaturedServices>
       <SalonServiceCategories></SalonServiceCategories>
+      <WhyChooseSalonBook></WhyChooseSalonBook>
     </div>
   );
 }
