@@ -41,7 +41,13 @@ async function getService(
       cache: "no-store",
     });
 
+    console.log("SERVICE API STATUS:", response.status);
+
     if (!response.ok) {
+      const errorBody = await response.text();
+
+      console.error("SERVICE API ERROR:", errorBody);
+
       if (response.status === 400) {
         return { service: null, error: "Invalid service ID." };
       }
@@ -68,7 +74,9 @@ async function getService(
     }
 
     return { service, error: null };
-  } catch {
+  } catch (error) {
+    console.error("GET SERVICE ERROR:", error);
+
     return {
       service: null,
       error: "Something went wrong. Please try again.",
@@ -161,8 +169,8 @@ export default async function ServiceDetailsPage({
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <span
                   className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold ${isActive
-                      ? "bg-green-50 text-green-700"
-                      : "bg-red-50 text-red-700"
+                    ? "bg-green-50 text-green-700"
+                    : "bg-red-50 text-red-700"
                     }`}
                 >
                   <span

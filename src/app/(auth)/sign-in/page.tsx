@@ -122,7 +122,7 @@ const SignInPage = () => {
       // Proxy will verify the session and user role.
       const callbackUrl = getSafeCallbackUrl();
 
-      window.location.replace(callbackUrl || "/sign-in");
+      window.location.replace(callbackUrl || "/");
     } catch (err) {
       console.error("Sign In Error:", err);
       setError("Something went wrong. Please try again.");
@@ -133,24 +133,39 @@ const SignInPage = () => {
 
   // Google Login
   const handleGoogleLogin = async () => {
-    setError("");
-    setSuccess("");
+  setError("");
+  setSuccess("");
 
-    try {
-      setIsGoogleLoading(true);
+  try {
+    setIsGoogleLoading(true);
 
-      const callbackUrl = getSafeCallbackUrl();
+    const callbackUrl = getSafeCallbackUrl();
 
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: callbackUrl || "/sign-in",
-      });
-    } catch (err) {
-      console.error("Google Login Error:", err);
-      setError("Google sign in failed. Please try again.");
+    const { data, error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: callbackUrl || "/",
+    });
+
+    if (error) {
+      setError(error.message || "Google sign in failed.");
       setIsGoogleLoading(false);
+      return;
     }
-  };
+
+    if (data?.url) {
+      window.location.assign(data.url);
+      return;
+    }
+
+    setError("Unable to redirect to Google. Please try again.");
+    setIsGoogleLoading(false);
+
+  } catch (err) {
+    console.error("Google Login Error:", err);
+    setError("Google sign in failed. Please try again.");
+    setIsGoogleLoading(false);
+  }
+};
 
   return (
     <section className="min-h-screen bg-white flex items-center justify-center px-4 py-10">
