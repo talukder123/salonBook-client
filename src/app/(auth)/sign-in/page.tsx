@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,6 +11,7 @@ import {
   Lock,
   ArrowRight,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import signinImage from "../../../../public/images/AUTH/sign-in-page.jpg";
 import { authClient } from "@/lib/auth-client";
@@ -22,20 +23,19 @@ const SignInPage = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-
-  const [error, setError] = useState(() => {
-    if (typeof window === "undefined") return "";
-
-    const params = new URLSearchParams(window.location.search);
-
-    return params.get("error") === "blocked"
-      ? "Your account has been blocked. Please contact support."
-      : "";
-  });
-
-  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // Show blocked account toast
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("error") === "blocked") {
+      toast.error(
+        "Your account has been blocked. Please contact support."
+      );
+    }
+  }, []);
 
   // Validate callback URL
   const getSafeCallbackUrl = () => {
@@ -88,18 +88,15 @@ const SignInPage = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    setError("");
-    setSuccess("");
-
     const { email, password } = formData;
 
     if (!email.trim() || !password) {
-      setError("Please fill in all fields.");
+      toast.error("Please fill in all fields.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      toast.error("Password must be at least 6 characters.");
       return;
     }
 
@@ -112,11 +109,11 @@ const SignInPage = () => {
       });
 
       if (error) {
-        setError(error.message || "Invalid email or password.");
+        toast.error(error.message || "Invalid email or password.");
         return;
       }
 
-      setSuccess("You have signed in successfully!");
+      toast.success("You have signed in successfully!");
 
       // Redirect directly to the requested page.
       // Proxy will verify the session and user role.
@@ -125,7 +122,7 @@ const SignInPage = () => {
       window.location.replace(callbackUrl || "/");
     } catch (err) {
       console.error("Sign In Error:", err);
-      setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -133,39 +130,36 @@ const SignInPage = () => {
 
   // Google Login
   const handleGoogleLogin = async () => {
-  setError("");
-  setSuccess("");
+    try {
+      setIsGoogleLoading(true);
 
-  try {
-    setIsGoogleLoading(true);
+      const callbackUrl = getSafeCallbackUrl();
 
-    const callbackUrl = getSafeCallbackUrl();
+      const { data, error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: callbackUrl || "/",
+      });
 
-    const { data, error } = await authClient.signIn.social({
-      provider: "google",
-      callbackURL: callbackUrl || "/",
-    });
+      if (error) {
+        toast.error(error.message || "Google sign in failed.");
+        setIsGoogleLoading(false);
+        return;
+      }
 
-    if (error) {
-      setError(error.message || "Google sign in failed.");
+      if (data?.url) {
+        toast.loading("Redirecting to Google...");
+        window.location.assign(data.url);
+        return;
+      }
+
+      toast.error("Unable to redirect to Google. Please try again.");
       setIsGoogleLoading(false);
-      return;
+    } catch (err) {
+      console.error("Google Login Error:", err);
+      toast.error("Google sign in failed. Please try again.");
+      setIsGoogleLoading(false);
     }
-
-    if (data?.url) {
-      window.location.assign(data.url);
-      return;
-    }
-
-    setError("Unable to redirect to Google. Please try again.");
-    setIsGoogleLoading(false);
-
-  } catch (err) {
-    console.error("Google Login Error:", err);
-    setError("Google sign in failed. Please try again.");
-    setIsGoogleLoading(false);
-  }
-};
+  };
 
   return (
     <section className="min-h-screen bg-white flex items-center justify-center px-4 py-10">
@@ -279,20 +273,6 @@ const SignInPage = () => {
                 </button>
               </div>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <p className="bg-red-50 border border-red-200 text-red-600 text-sm p-3">
-                {error}
-              </p>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <p className="bg-green-50 border border-green-200 text-green-700 text-sm p-3">
-                {success}
-              </p>
-            )}
 
             {/* Sign In Button */}
             <button

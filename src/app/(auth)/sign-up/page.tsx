@@ -4,6 +4,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { toast } from "sonner";
 
 import {
   Eye,
@@ -30,9 +31,6 @@ const SignUpPage = () => {
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -108,38 +106,35 @@ const SignUpPage = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    setError("");
-    setSuccess("");
-
     const { fullName, email, password, confirmPassword } = formData;
 
     if (!fullName.trim()) {
-      setError("Please enter your full name.");
+      toast.error("Please enter your full name.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+      toast.error("Password must be at least 6 characters long.");
       return;
     }
 
     if (!/[A-Z]/.test(password)) {
-      setError("Password must contain at least one uppercase letter.");
+      toast.error("Password must contain at least one uppercase letter.");
       return;
     }
 
     if (!/[a-z]/.test(password)) {
-      setError("Password must contain at least one lowercase letter.");
+      toast.error("Password must contain at least one lowercase letter.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
     if (profileImage && !profileImage.type.startsWith("image/")) {
-      setError("Please select a valid image file.");
+      toast.error("Please select a valid image file.");
       return;
     }
 
@@ -149,7 +144,22 @@ const SignUpPage = () => {
       let uploadedImageUrl = imageUrl.trim();
 
       if (profileImage) {
-        uploadedImageUrl = await uploadProfileImage(profileImage);
+        const toastId = toast.loading("Uploading profile image...");
+
+        try {
+          uploadedImageUrl = await uploadProfileImage(profileImage);
+          toast.success("Profile image uploaded successfully.", {
+            id: toastId,
+          });
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Profile image upload failed.",
+            { id: toastId }
+          );
+          return;
+        }
       }
 
       const { error: signupError } = await authClient.signUp.email({
@@ -160,13 +170,13 @@ const SignUpPage = () => {
       });
 
       if (signupError) {
-        setError(
+        toast.error(
           signupError.message || "Unable to create your account."
         );
         return;
       }
 
-      setSuccess("Your account has been created successfully!");
+      toast.success("Your account has been created successfully!");
 
       const callbackUrl = getSafeCallbackUrl();
 
@@ -176,7 +186,7 @@ const SignUpPage = () => {
     } catch (err) {
       console.error("Sign Up Error:", err);
 
-      setError(
+      toast.error(
         err instanceof Error
           ? err.message
           : "Something went wrong. Please try again."
@@ -188,22 +198,34 @@ const SignUpPage = () => {
 
   // Google Sign Up
   const handleGoogleSignUp = async () => {
-    setError("");
-    setSuccess("");
-
     try {
       setIsGoogleLoading(true);
 
       const callbackUrl = getSafeCallbackUrl();
 
-      await authClient.signIn.social({
+      const { data, error } = await authClient.signIn.social({
         provider: "google",
         callbackURL: callbackUrl || "/",
       });
+
+      if (error) {
+        toast.error(error.message || "Google sign up failed.");
+        setIsGoogleLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        toast.loading("Redirecting to Google...");
+        window.location.assign(data.url);
+        return;
+      }
+
+      // Better Auth may handle the redirect automatically.
+      toast.loading("Connecting to Google...");
     } catch (err) {
       console.error("Google Sign Up Error:", err);
 
-      setError("Google sign up failed. Please try again.");
+      toast.error("Google sign up failed. Please try again.");
       setIsGoogleLoading(false);
     }
   };
@@ -448,20 +470,6 @@ const SignUpPage = () => {
                   Your profile image will be uploaded to ImgBB.
                 </p>
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <p className="border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-                  {error}
-                </p>
-              )}
-
-              {/* Success Message */}
-              {success && (
-                <p className="border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-                  {success}
-                </p>
-              )}
 
               {/* Submit Button */}
               <button
