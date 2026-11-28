@@ -45,7 +45,6 @@ const SignInPage = () => {
     if (!callbackUrl) return null;
 
     try {
-      // Prevent external redirects
       if (
         !callbackUrl.startsWith("/") ||
         callbackUrl.startsWith("//") ||
@@ -60,7 +59,6 @@ const SignInPage = () => {
         return null;
       }
 
-      // Prevent redirect loops
       const blockedPaths = [
         "/sign-in",
         "/signin",
@@ -81,6 +79,21 @@ const SignInPage = () => {
       return url.pathname + url.search + url.hash;
     } catch {
       return null;
+    }
+  };
+
+  // Show welcome toast with first name
+  const showWelcomeToast = async () => {
+    try {
+      const { data } = await authClient.getSession();
+
+      const fullName = data?.user?.name?.trim();
+      const firstName = fullName?.split(/\s+/)[0] || "User";
+
+      toast.success(`Welcome, ${firstName}!`);
+    } catch (error) {
+      console.error("Getting user session failed:", error);
+      toast.success("Welcome!");
     }
   };
 
@@ -113,10 +126,9 @@ const SignInPage = () => {
         return;
       }
 
-      toast.success("You have signed in successfully!");
+      // Welcome toast
+      await showWelcomeToast();
 
-      // Redirect directly to the requested page.
-      // Proxy will verify the session and user role.
       const callbackUrl = getSafeCallbackUrl();
 
       window.location.replace(callbackUrl || "/");
@@ -135,7 +147,7 @@ const SignInPage = () => {
 
       const callbackUrl = getSafeCallbackUrl();
 
-      const { data, error } = await authClient.signIn.social({
+      const { error } = await authClient.signIn.social({
         provider: "google",
         callbackURL: callbackUrl || "/",
       });
@@ -143,17 +155,7 @@ const SignInPage = () => {
       if (error) {
         toast.error(error.message || "Google sign in failed.");
         setIsGoogleLoading(false);
-        return;
       }
-
-      if (data?.url) {
-        toast.loading("Redirecting to Google...");
-        window.location.assign(data.url);
-        return;
-      }
-
-      toast.error("Unable to redirect to Google. Please try again.");
-      setIsGoogleLoading(false);
     } catch (err) {
       console.error("Google Login Error:", err);
       toast.error("Google sign in failed. Please try again.");
@@ -230,7 +232,7 @@ const SignInPage = () => {
 
                 <Link
                   href="/forgot-password"
-                  className="text-xs font-semibold text-[#0B1F54] hover:underline"
+                  className="cursor-pointer text-xs font-semibold text-[#0B1F54] hover:underline"
                 >
                   Forgot Password?
                 </Link>
@@ -262,7 +264,7 @@ const SignInPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0B1F54]"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-[#0B1F54]"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
@@ -278,7 +280,7 @@ const SignInPage = () => {
             <button
               type="submit"
               disabled={isLoading || isGoogleLoading}
-              className="w-full h-12 bg-[#0B1F54] hover:bg-[#08183F] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm flex items-center justify-center gap-2 transition"
+              className="w-full h-12 cursor-pointer bg-[#0B1F54] hover:bg-[#08183F] disabled:cursor-not-allowed disabled:opacity-60 text-white font-semibold text-sm flex items-center justify-center gap-2 transition"
             >
               {isLoading ? "Signing In..." : "Sign In"}
               {!isLoading && <ArrowRight size={18} />}
@@ -301,7 +303,7 @@ const SignInPage = () => {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading || isLoading}
-            className="w-full h-12 border border-gray-300 hover:border-[#0B1F54] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 transition"
+            className="w-full h-12 cursor-pointer border border-gray-300 hover:border-[#0B1F54] disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center gap-3 text-sm font-semibold text-gray-700 transition"
           >
             <svg viewBox="0 0 48 48" className="w-5 h-5">
               <path
@@ -332,7 +334,7 @@ const SignInPage = () => {
             Don&apos;t have an account?{" "}
             <Link
               href="/sign-up"
-              className="font-bold text-[#0B1F54] hover:underline"
+              className="cursor-pointer font-bold text-[#0B1F54] hover:underline"
             >
               Sign Up
             </Link>

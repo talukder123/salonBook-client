@@ -148,6 +148,7 @@ const SignUpPage = () => {
 
         try {
           uploadedImageUrl = await uploadProfileImage(profileImage);
+
           toast.success("Profile image uploaded successfully.", {
             id: toastId,
           });
@@ -176,13 +177,16 @@ const SignUpPage = () => {
         return;
       }
 
-      toast.success("Your account has been created successfully!");
+      // Registration success toast
+      toast.success("You have registered successfully!");
 
       const callbackUrl = getSafeCallbackUrl();
 
-      // Normal signup → Home
-      // Private route signup → Requested route
-      window.location.replace(callbackUrl || "/");
+      // Redirect after showing success toast
+      setTimeout(() => {
+        window.location.replace(callbackUrl || "/");
+      }, 1500);
+
     } catch (err) {
       console.error("Sign Up Error:", err);
 
@@ -222,6 +226,7 @@ const SignUpPage = () => {
 
       // Better Auth may handle the redirect automatically.
       toast.loading("Connecting to Google...");
+
     } catch (err) {
       console.error("Google Sign Up Error:", err);
 
@@ -352,7 +357,7 @@ const SignUpPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
                     aria-label="Toggle password visibility"
                   >
                     {showPassword ? (
@@ -404,7 +409,7 @@ const SignUpPage = () => {
                     onClick={() =>
                       setShowConfirmPassword(!showConfirmPassword)
                     }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
                     aria-label="Toggle confirm password visibility"
                   >
                     {showConfirmPassword ? (
@@ -439,7 +444,7 @@ const SignUpPage = () => {
                       setProfileImage(e.target.files?.[0] || null);
                       setImageUrl("");
                     }}
-                    className="w-full border border-gray-300 py-2.5 pl-10 pr-2 text-sm text-gray-500 file:mr-3 file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#0B1F54]"
+                    className="w-full border border-gray-300 py-2.5 pl-10 pr-2 text-sm text-gray-500 file:mr-3 file:cursor-pointer file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#0B1F54]"
                   />
                 </div>
 
@@ -475,7 +480,7 @@ const SignUpPage = () => {
               <button
                 type="submit"
                 disabled={isLoading || isGoogleLoading}
-                className="w-full bg-[#0B1F54] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#08183F] disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full cursor-pointer bg-[#0B1F54] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#08183F] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading ? "Creating Account..." : "Create Account"}
               </button>
@@ -495,7 +500,7 @@ const SignUpPage = () => {
               type="button"
               onClick={handleGoogleSignUp}
               disabled={isGoogleLoading || isLoading}
-              className="flex w-full items-center justify-center gap-3 border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-600 transition hover:border-[#0B1F54] hover:text-[#0B1F54] disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full cursor-pointer items-center justify-center gap-3 border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-600 transition hover:border-[#0B1F54] hover:text-[#0B1F54] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <svg viewBox="0 0 48 48" className="h-5 w-5">
                 <path
@@ -526,7 +531,7 @@ const SignUpPage = () => {
               Already have an account?{" "}
               <Link
                 href="/sign-in"
-                className="font-semibold text-[#0B1F54] hover:underline"
+                className="cursor-pointer font-semibold text-[#0B1F54] hover:underline"
               >
                 Sign In
               </Link>

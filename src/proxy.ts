@@ -17,8 +17,8 @@ const isRoute = (pathname: string, route: string) => {
 
 const getDashboardUrl = (role: UserRole) => {
   return role === "admin"
-    ? "/dashboard/admin/dashboard"
-    : "/dashboard";
+    ? "/dashboard/admin"
+    : "/dashboard/user";
 };
 
 // Check role-based route access
@@ -74,6 +74,11 @@ const getSafeCallbackUrl = (
     // Prevent unauthorized callback redirects
     if (!hasRouteAccess(url.pathname, role)) {
       return null;
+    }
+
+    // Redirect customer dashboard root to existing customer route
+    if (url.pathname === DASHBOARD_ROUTE && role === "user") {
+      return CUSTOMER_ROUTE + url.search + url.hash;
     }
 
     return url.pathname + url.search + url.hash;
